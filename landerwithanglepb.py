@@ -2,13 +2,13 @@ from tensorforce import Agent, Environment
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-import time
 import pickle
-episode_number=1000
-average_over=30
+from tqdm import tqdm
+episode_number=1500
+average_over=20
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='LunarLander-v2')
+    environment='gym', level='Lunarlander-v2')
 '''
     Actions:
         Type: Discrete(4)
@@ -48,87 +48,70 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-reward_record=np.zeros((6,len(measure_length)))
 prohibition_parameter=[-1,-1.5,-2,-2.5,-3,0]
+prohibition_position=[0.1,0.3,0.5,0.7,0.9]
 
-for i in range(5):
-    record=[]
-    agent = Agent.create(
-        agent='a2c', environment=environment, batch_size=64, learning_rate=1e-2
-    )
-    for _ in range(episode_number):
-        episode_reward=0
-        states = environment.reset()
-        x_position=states[0]
-        angle_position=states[4]
-        terminal = False
-        while not terminal:
 
-            if angle_position>=.1:
-                episode_reward+= prohibition_parameter[i]
-                actions = agent.act(states=states)
-                actions=3
+reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
+theta_threshold_radians=0.4
 
-            elif angle_position<=-.1:
-                episode_reward+= prohibition_parameter[i]
-                actions = agent.act(states=states)
-                actions=1
-            else:
-                if x_position>=0.05:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=1
-                elif x_position<=-0.05:
+for k in range(len(prohibition_position)):
+    for i in range(len(prohibition_parameter)-1):
+        record=[]
+        agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
+        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
+        for _ in tqdm(range(episode_number)):
+            episode_reward=0
+            states = environment.reset()
+            terminal = False
+            while not terminal:
+                angle=states[4]
+                if angle>=prohibition_position[k]*theta_threshold_radians:
                     episode_reward+= prohibition_parameter[i]
                     actions = agent.act(states=states)
                     actions=3
+                elif angle<=-prohibition_position[k]*theta_threshold_radians:
+                    episode_reward+= prohibition_parameter[i]
+                    actions = agent.act(states=states)
+                    actions=1
                 else:
                     actions = agent.act(states=states)
-            states, terminal, reward = environment.execute(actions=actions)
-            agent.observe(terminal=terminal, reward=reward)
-            episode_reward+=reward
-        record.append(episode_reward)
-
-    temp=np.array(record)
-    reward_record[i]=moving_average(temp,average_over)
-
-
-
-
+                states, terminal, reward = environment.execute(actions=actions)
+                agent.observe(terminal=terminal, reward=reward)
+                episode_reward+=reward
+            record.append(episode_reward)
+        temp=np.array(record)
+        reward_record[k][i]=moving_average(temp,average_over)
 #compare to agent trained without prohibitive boundary
-agent = Agent.create(
-    agent='a2c', environment=environment, batch_size=64, learning_rate=1e-2
-)
-
-states=environment.reset()
-terminal=False
 record=[]
-for _ in range(episode_number):
+agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
+states=environment.reset()
+terminal = False
+print('running experiment without boundary')
+for _ in tqdm(range(episode_number)):
     episode_reward=0
     states = environment.reset()
-    terminal = False
-    reward=0
+    terminal=False
     while not terminal:
-        # Episode timestep
         actions = agent.act(states=states)
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward+=reward
         agent.observe(terminal=terminal, reward=reward)
     record.append(episode_reward)
-    print(episode_reward)
 temp=np.array(record)
-reward_record[5]=moving_average(temp,average_over)
+for k in range(len(prohibition_position)):
+    reward_record[k][len(prohibition_parameter)-1]=moving_average(temp,average_over)
 #plot results
 color_scheme=['green','orange','red','yellow','yellowgreen','black']
 x=range(len(measure_length))
 for i in range(len(prohibition_position)):
-    plt.figure()
     for j in range(len(prohibition_parameter)):
-        plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
+        plt.plot(x,reward_record[i][j],label='prohibition_position '+str(prohibition_position[i])+' prohibition parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
     plt.xlabel('episodes')
     plt.ylabel('reward')
     plt.legend(loc="upper left")
-    plt.savefig('cartpole_with_angle_boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('lander_with_angle_boundary_at%s_plot.png' %i)
 
+pickle.dump( reward_record, open( "lander_angle_record.p", "wb"))
 agent.close()
 environment.close()
