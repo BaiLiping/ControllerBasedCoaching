@@ -54,50 +54,7 @@ prohibition_position=[0.1,0.3,0.5,0.7,0.9,0.95,0.99]
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 theta_threshold_radians=0.4
 
-for k in range(len(prohibition_position)):
-    for i in range(len(prohibition_parameter)):
-        record=[]
-        agent = Agent.create(agent='agent.json', environment=environment)
-        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
-        for _ in tqdm(range(episode_number)):
-            episode_reward=0
-            states = environment.reset()
-            terminal = False
-            while not terminal:
-                angle=states[4]
-                if angle>=prohibition_position[k]*theta_threshold_radians:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=3
-                elif angle<=-prohibition_position[k]*theta_threshold_radians:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=1
-                else:
-                    actions = agent.act(states=states)
-                states, terminal, reward = environment.execute(actions=actions)
-                agent.observe(terminal=terminal, reward=reward)
-                episode_reward+=reward
-            record.append(episode_reward)
-        temp=np.array(record)
-        reward_record[k][i]=moving_average(temp,average_over)
-#compare to agent trained without prohibitive boundary
-record=[]
-agent = Agent.create(agent='agent.json', environment=environment)
-print('running experiment without boundary')
-for _ in tqdm(range(episode_number)):
-    episode_reward=0
-    states = environment.reset()
-    terminal=False
-    while not terminal:
-        actions = agent.act(states=states)
-        states, terminal, reward = environment.execute(actions=actions)
-        episode_reward+=reward
-        agent.observe(terminal=terminal, reward=reward)
-    record.append(episode_reward)
-temp=np.array(record)
-for k in range(len(prohibition_position)):
-    reward_record[k][len(prohibition_parameter)]=moving_average(temp,average_over)
+
 #plot results
 color_scheme=['green','orange','red','blue','yellowgreen','magenta','cyan']
 x=range(len(measure_length))

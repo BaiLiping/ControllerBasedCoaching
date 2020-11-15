@@ -4,8 +4,8 @@ import numpy as np
 import math
 import pickle
 from tqdm import tqdm
-episode_number=400
-average_over=20
+episode_number=100
+average_over=10
 # Pre-defined or custom environment
 environment = Environment.create(
     environment='gym', level='CartPole-v1', max_episode_timesteps=1000)
@@ -35,17 +35,35 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-5,-10,-15,-20,-25,-30]
-prohibition_position=[0.1,0.3,0.5,0.7,0.9,0.95,0.99]
-
+prohibition_parameter=[-15,-20,-25]
+prohibition_position=[0.5,0.7,0.9]
 
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
-theta_threshold_radians=12*2*math.pi/360
 
+#compare to agent trained without prohibitive boundary
+record=[]
+agent = Agent.create(agent='agent.json', environment=environment)
+states=environment.reset()
+terminal = False
+print('running experiment without boundary')
+for _ in tqdm(range(episode_number)):
+    episode_reward=0
+    states = environment.reset()
+    terminal= False
+    while not terminal:
+        actions = agent.act(states=states)
+        states, terminal, reward = environment.execute(actions=actions)
+        episode_reward+=reward
+        agent.observe(terminal=terminal, reward=reward)
+    record.append(episode_reward)
+temp=np.array(record)
+reward_record_without=moving_average(temp,average_over)
+
+#experiments with boundary
 for k in range(len(prohibition_position)):
     for i in range(len(prohibition_parameter)):
         record=[]
-        agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
+        agent = Agent.create(agent='agent.json', environment=environment)
         print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
         for _ in tqdm(range(episode_number)):
             episode_reward=0
@@ -70,24 +88,6 @@ for k in range(len(prohibition_position)):
         temp=np.array(record)
         reward_record[k][i]=moving_average(temp,average_over)
 
-#compare to agent trained without prohibitive boundary
-record=[]
-agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
-states=environment.reset()
-terminal = False
-print('running experiment without boundary')
-for _ in tqdm(range(episode_number)):
-    episode_reward=0
-    states = environment.reset()
-    terminal= False
-    while not terminal:
-        actions = agent.act(states=states)
-        states, terminal, reward = environment.execute(actions=actions)
-        episode_reward+=reward
-        agent.observe(terminal=terminal, reward=reward)
-    record.append(episode_reward)
-temp=np.array(record)
-reward_record_without=moving_average(temp,average_over)
 
 #save data
 pickle.dump( reward_record, open( "cartpole_angle_record.p", "wb"))
@@ -105,7 +105,7 @@ for i in range(len(prohibition_position)):
     plt.ylabel('reward')
     plt.legend(loc="upper left")
     plt.savefig('cartpole_with_angle_boundary_at_%s_plot.png' %prohibition_position[i])
-    
-   
+
+
 agent.close()
 environment.close()

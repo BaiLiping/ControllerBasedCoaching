@@ -103,9 +103,9 @@ for i in range(len(prohibition_position)):
         plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
     plt.xlabel('episodes')
     plt.ylabel('reward')
-    plt.legend(loc="upper left")
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',ncol=2, mode="expand", borderaxespad=0.)
     plt.savefig('cartpole_with_angle_boundary_at_%s_plot.png' %prohibition_position[i])
-    
-   
+
+
 agent.close()
 environment.close()

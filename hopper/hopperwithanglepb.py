@@ -4,8 +4,6 @@ import numpy as np
 import math
 import pickle
 from tqdm import tqdm
-episode_number=40000
-average_over=50
 # Pre-defined or custom environment
 environment = Environment.create(
     environment='gym', level='Hopper-v3')
@@ -14,7 +12,12 @@ environment = Environment.create(
         healthy_z_range=(0.7, float('inf'))
         healthy_angle_range=(-0.2, 0.2)
 '''
+
+
 # Intialize reward record and set parameters
+
+episode_number=15000
+average_over=100
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
@@ -22,40 +25,13 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-5,-10,-15,-20,-25,-30]
-prohibition_position=[0.1,0.3,0.5,0.7,0.9]
+prohibition_parameter=[-15,-20,-25]
+prohibition_position=[0.5,0.7,0.9]
 
 
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 theta_threshold_radians=0.2
-
-for k in range(len(prohibition_position)):
-    for i in range(len(prohibition_parameter)):
-        record=[]
-        agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
-        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
-        for _ in tqdm(range(episode_number)):
-            episode_reward=0
-            states = environment.reset()
-            terminal = False
-            while not terminal:
-                angle=states[2]
-                if angle>=prohibition_position[k]*theta_threshold_radians:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=[1,1,-1]
-                elif angle<=-prohibition_position[k]*theta_threshold_radians:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=[1,1,-1]
-                else:
-                    actions = agent.act(states=states)
-                states, terminal, reward = environment.execute(actions=actions)
-                agent.observe(terminal=terminal, reward=reward)
-                episode_reward+=reward
-            record.append(episode_reward)
-        temp=np.array(record)
-        reward_record[k][i]=moving_average(temp,average_over)
+z_threshold = 0.7
 
 #compare to agent trained without prohibitive boundary
 record=[]
@@ -75,9 +51,40 @@ for _ in tqdm(range(episode_number)):
     record.append(episode_reward)
 temp=np.array(record)
 reward_record_without=moving_average(temp,average_over)
+pickle.dump( reward_record, open( "hopper_without_record.p", "wb"))
 
-#save data
-pickle.dump( reward_record, open( "hopper_angle_record.p", "wb"))
+#with Boundary
+for k in range(len(prohibition_position)):
+    for i in range(len(prohibition_parameter)):
+        record=[]
+        agent = Agent.create(agent='agent.json', environment=environment)
+        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
+        for _ in tqdm(range(episode_number)):
+            episode_reward=0
+            states = environment.reset()
+            terminal = False
+            angle=states[2]
+            z_position=states[1]
+
+
+            while not terminal:
+                if abs(angle)>=prohibition_position[k]*theta_threshold_radians:
+                    episode_reward+= prohibition_parameter[i]
+                    actions = agent.act(states=states)
+                    actions=[1,1,-1]
+                elif z_position<=z_threshold:
+                    episode_reward+= prohibition_parameter[i]
+                    actions = agent.act(states=states)
+                    actions=[1,1,-1]
+                else:
+                    actions = agent.act(states=states)
+                states, terminal, reward = environment.execute(actions=actions)
+                agent.observe(terminal=terminal, reward=reward)
+                episode_reward+=reward
+            record.append(episode_reward)
+        temp=np.array(record)
+        reward_record[k][i]=moving_average(temp,average_over)
+pickle.dump( reward_record, open( "hopper_record.p", "wb"))
 
 
 #plot results
@@ -90,8 +97,8 @@ for i in range(len(prohibition_position)):
         plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
     plt.xlabel('episodes')
     plt.ylabel('reward')
-    plt.legend(loc="upper left")
-    plt.savefig('hopper_with_angle_boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.savefig('hopper_with_boundary_at_%s_plot.png' %prohibition_position[i])
 
 
 agent.close()

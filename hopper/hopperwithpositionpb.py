@@ -32,33 +32,9 @@ prohibition_position=[0.9,1,1.1,1.2]
 
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 z_threshold = 0.7
-
-for k in range(len(prohibition_position)):
-    for i in range(len(prohibition_parameter)):
-        record=[]
-        agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
-        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
-        for _ in tqdm(range(episode_number)):
-            episode_reward=0
-            states = environment.reset()
-            terminal = False
-            while not terminal:
-                z_position=states[1]
-                if z_position<=prohibition_position[k]:
-                    episode_reward+= prohibition_parameter[i]
-                    actions = agent.act(states=states)
-                    actions=[1,1,-1]
-                else:
-                    actions = agent.act(states=states)
-                states, terminal, reward = environment.execute(actions=actions)
-                agent.observe(terminal=terminal, reward=reward)
-                episode_reward+=reward
-            record.append(episode_reward)
-        temp=np.array(record)
-        reward_record[k][i]=moving_average(temp,average_over)
 #compare to agent trained without prohibitive boundary
 record=[]
-agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
+agent = Agent.create(agent='agent.json', environment=environment)
 states=environment.reset()
 terminal = False
 print('running experiment without boundary')
@@ -74,8 +50,35 @@ for _ in tqdm(range(episode_number)):
     record.append(episode_reward)
 temp=np.array(record)
 reward_record_without=moving_average(temp,average_over)
+pickle.dump( reward_record, open( "hopper_without_record.p", "wb"))
+
+#with boundary
+for k in range(len(prohibition_position)):
+    for i in range(len(prohibition_parameter)):
+        record=[]
+        agent = Agent.create(agent='agent.json', environment=environment)
+        print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
+        for _ in tqdm(range(episode_number)):
+            episode_reward=0
+            states = environment.reset()
+            terminal = False
+            z_position=states[1]
+
+            while not terminal:
+                if z_position<=prohibition_position[k]:
+                    episode_reward+= prohibition_parameter[i]
+                    actions = agent.act(states=states)
+                    actions=[1,1,-1]
+                else:
+                    actions = agent.act(states=states)
+                states, terminal, reward = environment.execute(actions=actions)
+                agent.observe(terminal=terminal, reward=reward)
+                episode_reward+=reward
+            record.append(episode_reward)
+        temp=np.array(record)
+        reward_record[k][i]=moving_average(temp,average_over)
 #plot results
-pickle.dump( reward_record, open( "hopper_position_record.p", "wb"))
+pickle.dump( reward_record, open( "hopper_record.p", "wb"))
 
 #plot results
 color_scheme=['green','orange','red','blue','yellowgreen','magenta','cyan']
