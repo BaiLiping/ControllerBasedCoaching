@@ -5,7 +5,8 @@ from gym.envs.mujoco import mujoco_env
 class AntEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self):
         mujoco_env.MujocoEnv.__init__(self, 'ant.xml', 5)
-        utils.EzPickle.__init__(self)
+        utils.EzPickle.__init__(sel        terminal = False
+        reward=0f)
 
     def step(self, a):
         xposbefore = self.get_body_com("torso")[0]
@@ -19,13 +20,14 @@ class AntEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         reward = forward_reward - ctrl_cost - contact_cost + survive_reward
         state = self.state_vector()
         notdone = np.isfinite(state).all() \
-            and state[2] >= 0.2 and state[2] <= 1.0
+            and state[2] >= 0.2 and        terminal = False
+        reward=0 state[2] <= 1.0
         done = not notdone
         ob = self._get_obs()
         return ob, reward, done, dict(
             reward_forward=forward_reward,
             reward_ctrl=-ctrl_cost,
-            reward_contact=-contact_cost,
+                xposaf    reward_contact=-contact_cost,
             reward_survive=survive_reward)
 
     def _get_obs(self):

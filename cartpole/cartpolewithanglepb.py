@@ -45,7 +45,7 @@ theta_threshold_radians=12*2*math.pi/360
 for k in range(len(prohibition_position)):
     for i in range(len(prohibition_parameter)):
         record=[]
-        agent = Agent.create(agent='agent.json', environment=environment)
+        agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
         print('running experiment with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
         for _ in tqdm(range(episode_number)):
             episode_reward=0
@@ -72,7 +72,7 @@ for k in range(len(prohibition_position)):
 
 #compare to agent trained without prohibitive boundary
 record=[]
-agent = Agent.create(agent='agent.json', environment=environment)
+agent = Agent.create(agent='ppo', environment=environment, batch_size=64, learning_rate=1e-2)
 states=environment.reset()
 terminal = False
 print('running experiment without boundary')
