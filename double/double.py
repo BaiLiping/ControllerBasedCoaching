@@ -4,8 +4,13 @@ import numpy as np
 import math
 import pickle
 from tqdm import tqdm
-episode_number=40000
+
+#define episode and average_over
+episode_number=60000
 average_over=100
+
+
+
 # Pre-defined or custom environment
 environment = Environment.create(
     environment='gym', level='InvertedDoublePendulum-v2')
@@ -46,10 +51,9 @@ length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0,-1,-3,-5]
-prohibition_position=[0.1,0.2,0.3,0.4,0.5]
+prohibition_position=[0.2,0.3,0.4]
 
 
-reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 
 #compare to agent trained without prohibitive boundary
 record=[]
@@ -68,12 +72,15 @@ for _ in tqdm(range(episode_number)):
         agent.observe(terminal=terminal, reward=reward)
     record.append(episode_reward)
 temp=np.array(record)
-reward_record_without=moving_average(temp,average_over)
+reward_record_without=record
+reward_record_without_average=moving_average(temp,average_over)
+pickle.dump(reward_record_without_average, open( "double_without_average_record.p", "wb"))
 pickle.dump(reward_record_without, open( "double_without_record.p", "wb"))
 
-
-
 #with boundary
+reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
+reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
+
 for k in range(len(prohibition_position)):
     for i in range(len(prohibition_parameter)):
         record=[]
@@ -103,12 +110,14 @@ for k in range(len(prohibition_position)):
                 agent.observe(terminal=terminal, reward=reward)
                 episode_reward+=reward
             record.append(episode_reward)
+        reward_record[k][i]=record
         temp=np.array(record)
-        reward_record[k][i]=moving_average(temp,average_over)
+        reward_record_average[k][i]=moving_average(temp,average_over)
 
 
 #save data
-pickle.dump( reward_record, open( "double_angle_record.p", "wb"))
+pickle.dump( reward_record, open( "double_record.p", "wb"))
+pickle.dump( reward_record_average, open( "double_average_record.p", "wb"))
 
 
 #plot results
@@ -121,8 +130,20 @@ for i in range(len(prohibition_position)):
         plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
     plt.xlabel('episodes')
     plt.ylabel('reward')
-    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',ncol=2, mode="expand", borderaxespad=0.)
-    plt.savefig('double_with_angle_boundary_at_%s_plot.png' %prohibition_position[i])
+
+
+#plot results
+color_scheme=['yellowgreen','magenta','green','orange','red','blue','cyan']
+x=range(len(measure_length))
+for i in range(len(prohibition_position)):
+    plt.figure(figsize=(20,10))
+    plt.plot(x,reward_record_without,label='without prohibitive boundary',color='black')
+    for j in range(len(prohibition_parameter)):
+        plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
+    plt.xlabel('episodes')
+    plt.ylabel('reward')
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
+    plt.savefig('double_with_boundary_at_%s_plot.png' %prohibition_position[i])
 
 
 agent.close()
