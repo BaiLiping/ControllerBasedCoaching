@@ -47,8 +47,8 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-1,-2,-3,-4,-5]
-prohibition_position=[0.05,0.1,0.15,0.2]
+prohibition_parameter=[0,-5,-10,-15,-20]
+prohibition_position=[0.3,0.5,0.9]
 
 
 theta_threshold_radians=12*2*math.pi/360
@@ -117,17 +117,17 @@ for k in range(len(prohibition_position)):
                 x_position=states[0]
                 angle=states[2]
                 actions= agent.act(states=states)
-                if angle>=prohibition_position[k]:
+                if angle>=prohibition_position[k]*theta_threshold_radians:
                     actions=1
                     states,terminal,reward=environment.execute(actions=actions)
-                    states=[x_position,0,prohibition_position[k],0]
+                    states=[x_position,0,0.9*prohibition_position[k]*theta_threshold_radians,0]
                     reward+=prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal,reward=reward)
                 elif angle<=-prohibition_position[k]*theta_threshold_radians:
                     actions=0
                     states,terminal,reward=environment.execute(actions=actions)
-                    states=[x_position,0,-prohibition_position[k],0]
+                    states=[x_position,0,0.9*-prohibition_position[k]*theta_threshold_radians,0]
                     reward+=prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal,reward=reward)

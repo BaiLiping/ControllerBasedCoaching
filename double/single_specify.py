@@ -151,17 +151,17 @@ for k in range(len(prohibition_position)):
                 theta2=math.asin(sintheta2)
                 angle=theta1-theta2
                 actions = agent.act(states=states)
-                if theta>=prohibition_position[k]:
+                if angle>=prohibition_position[k]:
                     actions=1
                     states, terminal, reward = environment.execute(actions=actions)
-                    states=states_old
+                    states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
-                elif theta<=-prohibition_position[k]:
+                elif angle<=-prohibition_position[k]:
                     actions=-1
                     states, terminal, reward = environment.execute(actions=actions)
-                    states=states_old
+                    states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
