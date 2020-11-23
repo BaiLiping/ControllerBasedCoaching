@@ -47,8 +47,8 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-5,-10,-15,-20]
-prohibition_position=[0.3,0.5,0.9]
+prohibition_parameter=[0,-5,-7,-10,-12,-15]
+prohibition_position=[0.5,0.7,0.9]
 
 
 theta_threshold_radians=12*2*math.pi/360

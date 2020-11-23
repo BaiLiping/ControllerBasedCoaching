@@ -5,18 +5,23 @@ import math
 import pickle
 from tqdm import tqdm
 
+
 #setparameters
-num_steps=50 #update exploration rate over n steps
-initial_value=0.95 #initial exploartion rate
-decay_rate=0.9 #exploration rate decay rate
+num_steps=100 #update exploration rate over n steps
+initial_value=0.9 #initial exploartion rate
+decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
 exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
+episode_number=1000
+evaluation_episode_number=5
+average_over=50
+
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='InvertedDoublePendulum-v2')
+    environment='gym', level='InvertedDoublePendulum-v2', max_episode_timesteps=300)
 '''
     Observation:
 
@@ -57,39 +62,37 @@ environment = Environment.create(
         done = bool(y <= 1)
         return ob, r, done, {}
 '''
+
 # Intialize reward record and set parameters
 #define the length of the vector
-episode_number=60000
-evaluation_episode_number=100
-average_over=100
+
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-5,-10,-15]
-prohibition_position=[0.05,0.1]
+prohibition_parameter=[0,-3,-4,-5,-6,-7]
+prohibition_position=[0.4,0.5,0.6,0.7]
 
 #compare to agent trained without prohibitive boundary
 
 #training of agent without prohibitive boundary
 reward_record_without=[]
 
-agent = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
+agent_without = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
 states=environment.reset()
 terminal = False
 print('training agent without boundary')
-#for _ in tqdm(range(episode_number)):
-for _ in range(episode_number):
+for _ in tqdm(range(episode_number)):
     episode_reward=0
     states = environment.reset()
     terminal= False
     while not terminal:
-        actions = agent.act(states=states)
+        actions = agent_without.act(states=states)
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward+=reward
-        agent.observe(terminal=terminal, reward=reward)
+        agent_without.observe(terminal=terminal, reward=reward)
     reward_record_without.append(episode_reward)
     print(episode_reward)
 temp=np.array(reward_record_without)
@@ -114,20 +117,17 @@ print('evaluating agent without boundary')
 for _ in tqdm(range(evaluation_episode_number)):
     episode_reward=0
     states = environment.reset()
-    internals = agent.initial_internals()
+    internals = agent_without.initial_internals()
     terminal = False
     while not terminal:
-        actions, internals = agent.act(
+        actions, internals = agent_without.act(
             states=states, internals=internals, independent=True, deterministic=True
         )
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward += reward
     evaluation_reward_record_without.append(episode_reward)
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
-print(evaluation_reward_record_without)
-#save agent and close agent
-#agent.save(directory='without', format='saved-model')
-agent.close()
+agent_without.close()
 
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
@@ -140,35 +140,37 @@ for k in range(len(prohibition_position)):
         record=[]
         agent = Agent.create(agent='agent.json', environment=environment)
         print('training agent with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
-        #for _ in tqdm(range(episode_number)):
-        for _ in range(episode_number):
+        for _ in tqdm(range(episode_number)):
             episode_reward=0
             states = environment.reset()
             terminal = False
             while not terminal:
+                states_old=states
                 sintheta1=states[1]
                 sintheta2=states[2]
                 theta1=math.asin(sintheta1)
                 theta2=math.asin(sintheta2)
                 angle=theta1-theta2
-                if angle>=prohibition_position[k]*math.pi:
-                    actions = agent.act(states=states)
+                actions = agent.act(states=states)
+                if angle>=prohibition_position[k]:
                     actions=1
                     states, terminal, reward = environment.execute(actions=actions)
+                    states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
                     reward+= prohibition_parameter[i]
+                    episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
-                elif angle<=-prohibition_position[k]*math.pi:
-                    actions = agent.act(states=states)
+                elif angle<=-prohibition_position[k]:
                     actions=-1
                     states, terminal, reward = environment.execute(actions=actions)
+                    states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
                     reward+= prohibition_parameter[i]
+                    episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 else:
-                    actions = agent.act(states=states)
                     states, terminal, reward = environment.execute(actions=actions)
                     agent.observe(terminal=terminal, reward=reward)
+                    episode_reward+=reward
 
-                episode_reward+=reward
             record.append(episode_reward)
             print(episode_reward)
 
@@ -191,10 +193,7 @@ for k in range(len(prohibition_position)):
                 episode_reward += reward
             eva_reward_record.append(episode_reward)
         evaluation_reward_record[k][i]=eva_reward_record
-        print(eva_reward_record)
-        #agent.save(directory='%s %s' %(k,i) , format='saved-model')
         agent.close()
-
 #save data
 pickle.dump(reward_record, open( "record.p", "wb"))
 pickle.dump(reward_record_average, open( "average_record.p", "wb"))
@@ -212,7 +211,7 @@ for i in range(len(prohibition_position)):
     plt.xlabel('episodes')
     plt.ylabel('reward')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
-    plt.savefig('double_with_boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('double_pendulum_with_boundary_at_%s_plot.png' %prohibition_position[i])
 
 #indicate evaluation results
 average_without=sum(evaluation_reward_record_without)/evaluation_episode_number
