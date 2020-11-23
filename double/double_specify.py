@@ -6,7 +6,7 @@ import pickle
 from tqdm import tqdm
 
 #setparameters
-num_steps=5000 #update exploration rate over n steps
+num_steps=50 #update exploration rate over n steps
 initial_value=0.95 #initial exploartion rate
 decay_rate=0.9 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
