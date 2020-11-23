@@ -15,9 +15,9 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=1000
+episode_number=2000
 evaluation_episode_number=5
-average_over=50
+average_over=100
 
 # Pre-defined or custom environment
 environment = Environment.create(
