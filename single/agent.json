@@ -2,7 +2,7 @@
 {
     "agent": "ppo",
     "network": {"type": "auto", "rnn": false},
-    "use_beta_distribution": false,
+    "use_beta_distribution": true,
     "memory": "minimum",
     "batch_size": 10,
     "update_frequency": 1,
@@ -18,5 +18,5 @@
     "reward_preprocessing": null,
     "variable_noise": 0.0,
     "l2_regularization": 0.0,
-    "entropy_regularization": 0.3
+    "entropy_regularization": 0.4
 }

@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 #setparameters
-num_steps=50 #update exploration rate over n steps
+num_steps=30 #update exploration rate over n steps
 initial_value=0.95 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -17,7 +17,7 @@ exploration=dict(type=set_type, unit='timesteps',
 
 episode_number=100
 evaluation_episode_number=5
-average_over=5
+average_over=10
 
 # Pre-defined or custom environment
 environment = Environment.create(
@@ -134,8 +134,8 @@ for k in range(len(prohibition_position)):
                 else:
                     states, terminal, reward = environment.execute(actions=actions)
                     agent.observe(terminal=terminal, reward=reward)
+                    episode_reward+=reward
 
-                episode_reward+=reward
             record.append(episode_reward)
             print(episode_reward)
 
@@ -159,7 +159,6 @@ for k in range(len(prohibition_position)):
             eva_reward_record.append(episode_reward)
         evaluation_reward_record[k][i]=eva_reward_record
         print(eva_reward_record)
-        #agent.save(directory='%s %s' %(k,i) , format='saved-model')
         agent.close()
 
 #save data
@@ -172,7 +171,7 @@ pickle.dump(evaluation_reward_record, open( "evaluation_record.p", "wb"))
 color_scheme=['yellowgreen','magenta','orange','blue','red','cyan','green']
 x=range(len(measure_length))
 for i in range(len(prohibition_position)):
-    plt.figure(figsize=(20,10))
+    plt.figure(figsize=(10,10))
     plt.plot(x,reward_record_without_average,label='without prohibitive boundary',color='black')
     for j in range(len(prohibition_parameter)):
         plt.plot(x,reward_record_average[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])

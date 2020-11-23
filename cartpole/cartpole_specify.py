@@ -15,7 +15,7 @@ exploration=dict(type=set_type, unit='timesteps',
 
 episode_number=300
 evaluation_episode_number=5
-average_over=15
+average_over=20
 
 # Pre-defined or custom environment
 environment = Environment.create(
@@ -47,7 +47,7 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-1,-2,-3,-4,-5,-10]
+prohibition_parameter=[0,-1,-2,-3,-4,-5]
 prohibition_position=[0.3,0.5,0.7,0.8,0.9]
 
 
@@ -73,7 +73,6 @@ for _ in tqdm(range(episode_number)):
         episode_reward+=reward
         agent.observe(terminal=terminal, reward=reward)
     reward_record_without.append(episode_reward)
-    print(episode_reward)
 temp=np.array(reward_record_without)
 reward_record_without_average=moving_average(temp,average_over)
 pickle.dump(reward_record_without_average, open( "cartpole_without_average_record.p", "wb"))
@@ -97,8 +96,6 @@ for _ in tqdm(range(evaluation_episode_number)):
     evaluation_reward_record_without.append(episode_reward)
 pickle.dump(evaluation_reward_record_without, open( "evaluation_cartpole_without_record.p", "wb"))
 print(evaluation_reward_record_without)
-#save agent and close agent
-#agent.save(directory='without', format='saved-model')
 agent.close()
 
 #training and evaluation with boundary
@@ -125,38 +122,17 @@ for k in range(len(prohibition_position)):
                     episode_reward+=reward
                     reward+=prohibition_parameter[i]
                     agent.observe(terminal=terminal,reward=reward)
-                    '''
-                    if actions==1:
-                        reward=-100
-                        agent.observe(terminal=terminal,reward=reward)
-                    else:
-                        states,terminal,reward=environment.execute(actions=actions)
-                        episode_reward+=reward
-                        reward+=prohibition_parameter[i]
-                        agent.observe(terminal=terminal,reward=reward)
-                    '''
                 elif angle<=-prohibition_position[k]*theta_threshold_radians:
                     actions=1
                     states,terminal,reward=environment.execute(actions=actions)
                     episode_reward+=reward
                     reward+=prohibition_parameter[i]
                     agent.observe(terminal=terminal,reward=reward)
-                    '''
-                    if actions==0:
-                        reward=-100
-                        agent.observe(terminal=terminal,reward=reward)
-                    else:
-                        states,terminal,reward=environment.execute(actions=actions)
-                        episode_reward+=reward
-                        reward+=prohibition_parameter[i]
-                        agent.observe(terminal=terminal,reward=reward)
-                    '''
                 else:
                     states, terminal, reward = environment.execute(actions=actions)
                     agent.observe(terminal=terminal, reward=reward)
                     episode_reward+=reward
             record.append(episode_reward)
-            print(episode_reward)
         reward_record[k][i]=record
         temp=np.array(record)
         reward_record_average[k][i]=moving_average(temp,average_over)
@@ -176,9 +152,6 @@ for k in range(len(prohibition_position)):
                 episode_reward += reward
             eva_reward_record.append(episode_reward)
         evaluation_reward_record[k][i]=eva_reward_record
-        print(eva_reward_record)
-
-        #agent.save(directory='%s %s' %(k,i) , format='saved-model')
         agent.close()
 
 #save data
