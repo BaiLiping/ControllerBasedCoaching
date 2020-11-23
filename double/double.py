@@ -41,6 +41,18 @@ environment = Environment.create(
        then math.pi-(math.pi-theta1+theta2)=theta1-theta2 which is the
        information on how pointing the angle is. We want theta1-theta2
        to be as small as possible
+    reward function:
+        def step(self, action):
+        self.do_simulation(action, self.frame_skip)
+        ob = self._get_obs()
+        x, _, y = self.sim.data.site_xpos[0]
+        dist_penalty = 0.01 * x ** 2 + (y - 2) ** 2
+        v1, v2 = self.sim.data.qvel[1:3]
+        vel_penalty = 1e-3 * v1**2 + 5e-3 * v2**2
+        alive_bonus = 10
+        r = alive_bonus - dist_penalty - vel_penalty
+        done = bool(y <= 1)
+        return ob, r, done, {}
 '''
 # Intialize reward record and set parameters
 
@@ -52,8 +64,6 @@ measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0,-1,-3,-5]
 prohibition_position=[0.2,0.3,0.4]
-
-
 
 #compare to agent trained without prohibitive boundary
 record=[]
@@ -136,7 +146,7 @@ for i in range(len(prohibition_position)):
 color_scheme=['yellowgreen','magenta','green','orange','red','blue','cyan']
 x=range(len(measure_length))
 for i in range(len(prohibition_position)):
-    plt.figure(figsize=(20,10))
+    plt.figure()
     plt.plot(x,reward_record_without,label='without prohibitive boundary',color='black')
     for j in range(len(prohibition_parameter)):
         plt.plot(x,reward_record[i][j],label='position '+str(prohibition_position[i])+' parameter '+str(prohibition_parameter[j]),color=color_scheme[j])
