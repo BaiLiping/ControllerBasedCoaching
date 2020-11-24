@@ -63,7 +63,6 @@ prohibition_parameter=[0,-10,-20,-30]
 prohibition_position=[0.05,0.1,0.15]
 
 #compare to agent trained without prohibitive boundary
-
 #training of agent without prohibitive boundary
 reward_record_without=[]
 
@@ -116,7 +115,6 @@ for _ in tqdm(range(evaluation_episode_number)):
     print(evaluation_reward_record_without)
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
-
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
@@ -138,14 +136,26 @@ for k in range(len(prohibition_position)):
                 if y_position>=prohibition_position[k]:
                     actions=[0,0,0]
                     states, terminal, reward = environment.execute(actions=actions)
-                    states[2]=prohibitive_position[k]*0.9
+                    states[2]=prohibition_position[k]*0.9
+                    states[5]=0 #rootx velocity
+                    states[6]=0 #rootz velocity
+                    states[7]=0 #rooty velocity
+                    states[8]=0 #thigh joint velocity
+                    states[9]=0 #leg joint velocity
+                    states[10]=0 #foot joint velocity
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
-                elif angle<=-prohibition_position[k]:
+                elif y_position<=-prohibition_position[k]:
                     actions=[0,0,0]
                     states, terminal, reward = environment.execute(actions=actions)
-                    states[2]=prohibitive_position[k]*0.9
+                    states[2]=prohibition_position[k]*0.9
+                    states[5]=0
+                    states[6]=0
+                    states[7]=0
+                    states[8]=0
+                    states[9]=0
+                    states[10]=0
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
