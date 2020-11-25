@@ -159,10 +159,7 @@ for _ in tqdm(range(evaluation_episode_number)):
     evaluation_reward_record_single.append(episode_reward)
     print(evaluation_reward_record_single)
 pickle.dump(evaluation_reward_record_single, open( "evaluation_single_record.p", "wb"))
-agent_thigh.close()
-agent_leg.close()
-agent_foot.close()
-environment_single.close()
+
 
 #plot
 x=range(len(measure_length))
@@ -173,3 +170,10 @@ plt.xlabel('episodes')
 plt.ylabel('reward')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
 plt.savefig('plot_compare.png')
+
+
+
+agent_thigh.close()
+agent_leg.close()
+agent_foot.close()
+environment_single.close()
