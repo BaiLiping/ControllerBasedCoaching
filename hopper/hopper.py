@@ -131,7 +131,7 @@ for k in range(len(prohibition_position)):
             states = environment.reset()
             terminal = False
             while not terminal:
-                y_position=states[2]
+                y_position=states[1]
                 actions = agent.act(states=states)
                 if y_position>=prohibition_position[k]:
                     actions=[0,0,0]

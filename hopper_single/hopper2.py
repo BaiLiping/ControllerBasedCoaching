@@ -131,10 +131,9 @@ for k in range(len(prohibition_position)):
             episode_reward=0
             states = environment.reset()
             states_init=states
-            terminal = False
             while not terminal:
-                z_position=states[1]
-                y_position=states[2]
+                z_position=states[0]
+                y_position=states[1]
                 actions = agent.act(states=states)
                 if y_position>=prohibition_position[k]:
                     actions=[0,0,0]
@@ -162,11 +161,19 @@ for k in range(len(prohibition_position)):
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
-                elif z_position<=0.7+prohitition_parameter[i]:
-                    actions=[0,0,0]
+                elif z_position==0.7+prohibition_position[k]:
+                    states_threshold=states
+                    states_threshold[5]=0
+                    states_threshold[6]=0
+                    states_threshold[7]=0
+                    states_threshold[8]=0
+                    states_threshold[9]=0
+                    states_threshold[10]=0
+                elif z_position<0.7+prohibition_position[k]:
+                    actions=[1,1,1]
                     states,terminal,reward=environment.execute(actions=actions)
-                    states=states_init
-                    reward+=prohibition_para,eter[i]
+                    states=states_threshold
+                    reward+=prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal,reward=reward)
                 else:
@@ -214,7 +221,7 @@ for i in range(len(prohibition_position)):
     plt.xlabel('episodes')
     plt.ylabel('reward')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
-    plt.savefig('hopper_with_boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('hopper2_with_boundary_at_%s_plot.png' %prohibition_position[i])
 
 #indicate evaluation results
 average_without=sum(evaluation_reward_record_without)/evaluation_episode_number

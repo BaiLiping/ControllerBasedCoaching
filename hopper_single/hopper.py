@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 #setparameters
-num_steps=1000 #update exploration rate over n steps
+num_steps=2000 #update exploration rate over n steps
 initial_value=0.9 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -15,13 +15,13 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=5000
+episode_number=10000
 evaluation_episode_number=50
 average_over=100
 
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='Walker2d-v2')
+    environment='gym', level='HopperBLP-v0')
 '''
 For detailed notes on how to interact with the Mujoco environment, please refer
 to note https://bailiping.github.io/Mujoco/
@@ -29,35 +29,28 @@ to note https://bailiping.github.io/Mujoco/
 Observation:
 
     Num    Observation                                 Min            Max
-           rootx(_get_obs states from  root z)          Not Limited
+           x_position(exclude shown up in info instead) Not Limited
     0      rootz                                        Not Limited
     1      rooty                                        Not Limited
-    2      thigh joint                                 -150           0
-    3      leg joint                                   -150           0
-    4      foot joint                                  -45            45
-    5      thigh left joint                            -150           0
-    6      leg left joint                              -150           0
-    7      foot left joint                             -45            45
-    8      velocity of rootx                           -10            10
-    9      velocity of rootz                           -10            10
-    10     velocity of rooty                           -10            10
-    11     angular velocity of thigh joint             -10            10
-    12     angular velocity of leg joint               -10            10
-    13     angular velocity of foot joint              -10            10
-    14     angular velocity of thigh left joint        -10            10
-    15     angular velocity of leg left joint          -10            10
-    16     angular velocity of foot left joint         -10            10
+    2      thigh joint                                  -150           0
+    3      leg joint                                    -150           0
+    4      foot joint                                   -45           45
+    5      velocity of rootx                           -10            10
+    6      velocity of rootz                           -10            10
+    7      velocity of rooty                           -10            10
+    8      angular velocity of thigh joint             -10            10
+    9      angular velocity of leg joint               -10            10
+    10     angular velocity of foot joint              -10            10
+    11     action for thigh joint
+    12     action for leg joint
+    13     action for foot joint
 
 Actions:
     0     Thigh Joint Motor                             -1             1
     1     Leg Joint Motor                               -1             1
     2     Foot Joint Motor                              -1             1
-    3     Thigh Left Joint Motor                        -1             1
-    4     Leg Left Joint Motor                          -1             1
-    5     Foot Left Joint Motor                         -1             1
 Termination:
-        done = not (height > 0.8 and height < 2.0 and
-                    ang > -1.0 and ang < 1.0)
+    healthy_angle_range=(-0.2, 0.2)
 '''
 
 # Intialize reward record and set parameters
@@ -69,8 +62,8 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-10,-20,-30,-40]
-prohibition_position=[0.1,0.3,0.5,0.7,0.9]
+prohibition_parameter=[0,-10,-20,-30]
+prohibition_position=[0.05,0.1,0.15]
 
 #compare to agent trained without prohibitive boundary
 #training of agent without prohibitive boundary
@@ -105,6 +98,7 @@ plt.ylabel('reward')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
 plt.savefig('plot.png')
 
+
 #evaluate the agent without Boundary
 episode_reward = 0.0
 evaluation_reward_record_without=[]
@@ -125,7 +119,7 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
 
-
+'''
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
@@ -142,30 +136,36 @@ for k in range(len(prohibition_position)):
             states = environment.reset()
             terminal = False
             while not terminal:
-                y_position=states[2]
+                y_position=states[1]
                 actions = agent.act(states=states)
                 if y_position>=prohibition_position[k]:
-                    actions=[0,0,0,0,0,0]
-                    states, terminal, reward= environment.execute(actions=actions)
+                    actions=[0,0,0]
+                    states, terminal, reward = environment.execute(actions=actions)
                     states[2]=prohibition_position[k]*0.9
-                    for p in range(9):
-                        vel_position=8+p
-                        states[vel_position]=0
+                    states[5]=0 #rootx velocity
+                    states[6]=0 #rootz velocity
+                    states[7]=0 #rooty velocity
+                    states[8]=0 #thigh joint velocity
+                    states[9]=0 #leg joint velocity
+                    states[10]=0 #foot joint velocity
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 elif y_position<=-prohibition_position[k]:
-                    actions=[0,0,0,0,0,0]
+                    actions=[0,0,0]
                     states, terminal, reward = environment.execute(actions=actions)
                     states[2]=prohibition_position[k]*0.9
-                    for p in range(9):
-                        vel_position=8+p
-                        states[vel_position]=0
+                    states[5]=0
+                    states[6]=0
+                    states[7]=0
+                    states[8]=0
+                    states[9]=0
+                    states[10]=0
                     reward+= prohibition_parameter[i]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 else:
-                    states, terminal, reward= environment.execute(actions=actions)
+                    states, terminal, reward = environment.execute(actions=actions)
                     agent.observe(terminal=terminal, reward=reward)
                     episode_reward+=reward
 
@@ -219,4 +219,7 @@ for i in range(len(prohibition_position)):
     for j in range(len(prohibition_parameter)):
         average=(sum(evaluation_reward_record[i][j])/evaluation_episode_number)
         print("the average of agent trained with boundary at %s with parameter %s is %s" %(prohibition_position[i],prohibition_parameter[j],average))
+
+'''
+
 environment.close()
