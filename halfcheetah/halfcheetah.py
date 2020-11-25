@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 #setparameters
-num_steps=2000 #update exploration rate over n steps
+num_steps=1000 #update exploration rate over n steps
 initial_value=0.9 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -15,7 +15,7 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=15000
+episode_number=5000
 evaluation_episode_number=50
 average_over=100
 
@@ -56,7 +56,7 @@ Actions:
     4     Front Leg Left Joint Motor
     5     Front Foot Left Joint Motor
 Termination:
-        There is no specified terminal critirium, but still we can use y_position 
+        There is no specified terminal critirium, but still we can use y_position
 '''
 # Intialize reward record and set parameters
 #define the length of the vector
@@ -123,6 +123,8 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
 
+#reward_record_without_average=pickle.load(open("without_average_record.p", "rb"))
+#evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))

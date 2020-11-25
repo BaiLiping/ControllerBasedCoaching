@@ -71,14 +71,12 @@ measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0,-10,-20,-30,-40]
 prohibition_position=[0.1,0.3,0.5,0.7,0.9]
-
+'''
 #compare to agent trained without prohibitive boundary
 #training of agent without prohibitive boundary
 reward_record_without=[]
 
 agent_without = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
-states=environment.reset()
-terminal = False
 print('training agent without boundary')
 for _ in tqdm(range(episode_number)):
     episode_reward=0
@@ -125,7 +123,9 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
 
-
+'''
+reward_record_without_average=pickle.load(open("without_average_record.p", "rb"))
+evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))

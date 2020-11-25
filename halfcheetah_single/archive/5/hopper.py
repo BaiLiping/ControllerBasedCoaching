@@ -4,7 +4,6 @@ import numpy as np
 import math
 import pickle
 from tqdm import tqdm
-import gym
 
 '''
 For detailed notes on how to interact with the Mujoco environment, please refer
@@ -59,7 +58,9 @@ measure_length=moving_average(length,average_over)
 #Normal Agent
 environment_normal=Environment.create(environment='gym',level='Hopper-v3')
 reward_record_normal=[]
-agent_normal = Agent.create(agent='agent.json', environment=environment_normal,exploration=exploration)
+agent_normal = Agent.create(agent='agent_normal.json', environment=environment_normal,exploration=exploration)
+states=environment_normal.reset()
+terminal = False
 print('training normal agent')
 for _ in tqdm(range(episode_number)):
     episode_reward=0
@@ -100,34 +101,23 @@ environment_normal.close()
 '''
 reward_record_normal_average=pickle.load(open( "normal_average_record.p", "rb"))
 
-#training single action agent
-environment_single = Environment.create(environment='gym', level='HopperBLP-v2')
-reward_record_single=[]
-agent_thigh = Agent.create(agent='agent.json', environment=environment_single,exploration=exploration)
-agent_leg = Agent.create(agent='agent.json',environment=environment_single,exploration=exploration)
-agent_foot = Agent.create(agent='agent.json',environment=environment_single,exploration=exploration)
 
+#training single action agent
+environment_single = Environment.create(environment='gym', level='HopperBLP-v1')
+reward_record_single=[]
+agent_single = Agent.create(agent='agent_single.json', environment=environment_single,exploration=exploration)
+states=environment_single.reset()
+terminal = False
 print('training agent without single action')
 for _ in tqdm(range(episode_number)):
     episode_reward=0
     states = environment_single.reset()
     terminal= False
     while not terminal:
-        states[11]=0.0
-        actions_thigh = agent_thigh.act(states=states)
-        states[11]=actions_thigh[0]
-        states[12]=0.0
-        actions_leg = agent_leg.act(states=states)
-        states[12]=actions_leg[0]
-        states[13]=0.0
-        actions_foot = agent_foot.act(states=states)
-        states[13] = actions_foot[0]
-        actions=[actions_thigh[0],actions_leg[0],actions_foot[0]]
+        actions = agent_single.act(states=states)
         states, terminal, reward = environment_single.execute(actions=actions)
         episode_reward+=reward
-        agent_thigh.observe(terminal=terminal, reward=reward)
-        agent_leg.observe(terminal=terminal, reward=reward)
-        agent_foot.observe(terminal=terminal, reward=reward)
+        agent_single.observe(terminal=terminal, reward=reward)
     reward_record_single.append(episode_reward)
     print(episode_reward)
 temp=np.array(reward_record_single)
@@ -142,27 +132,21 @@ print('evaluating single action agent')
 for _ in tqdm(range(evaluation_episode_number)):
     episode_reward=0
     states = environment_single.reset()
-    internals_thigh = agent_thigh.initial_internals()
-    internals_leg = agent_leg.initial_internals()
-    internals_foot = agent_foot.initial_internals()
+    internals = agent_single.initial_internals()
     terminal = False
     while not terminal:
-        actions_thigh, internals_thigh = agent_thigh.act(states=states, internals=internals_thigh, independent=True, deterministic=True)
-        states[11]=actions_thigh[0]
-        actions_leg, internals_leg = agent_leg.act(states=states, internals=internals_leg, independent=True, deterministic=True)
-        states[12]=actions_leg[0]
-        actions_foot, internals_foot = agent_foot.act(states=states, internals=internals_foot, independent=True, deterministic=True)
-        states[13]=actions_foot[0]
-        actions=[actions_thigh[0],actions_leg[0],actions_foot[0]]
+        actions, internals = agent_single.act(
+            states=states, internals=internals, independent=True, deterministic=True
+        )
         states, terminal, reward = environment_single.execute(actions=actions)
         episode_reward += reward
     evaluation_reward_record_single.append(episode_reward)
     print(evaluation_reward_record_single)
 pickle.dump(evaluation_reward_record_single, open( "evaluation_single_record.p", "wb"))
-agent_thigh.close()
-agent_leg.close()
-agent_foot.close()
+agent_single.close()
 environment_single.close()
+
+
 
 #plot
 x=range(len(measure_length))
@@ -172,4 +156,4 @@ plt.plot(x,reward_record_single_average,label='single agent',color='red')
 plt.xlabel('episodes')
 plt.ylabel('reward')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
-plt.savefig('plot_compare.png')
+plt.savefig('plot.png')
