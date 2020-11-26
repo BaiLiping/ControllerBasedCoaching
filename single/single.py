@@ -44,7 +44,7 @@ length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0,-10,-20,-30,-40,-50]
-prohibition_position=[0.2,0.3,0.4,0.5]
+prohibition_position=[0.05,0.1,0.2,0.3,0.4,0.5]
 
 #compare to agent trained without prohibitive boundary
 
@@ -119,7 +119,7 @@ for k in range(len(prohibition_position)):
                     actions=1
                     states, terminal, reward = environment.execute(actions=actions)
                     reward+= prohibition_parameter[i]
-                    states=[x_position,0.9*prohibitive_position[k],0,0]
+                    states=[x_position,0.9*prohibition_position[k],0,0]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 elif theta<=-prohibition_position[k]:
