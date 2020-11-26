@@ -34,7 +34,7 @@ color_scheme=['yellowgreen','magenta','orange','blue','red','cyan','green']
 x=range(len(measure_length))
 for i in range(len(prohibition_position)):
     fig=plt.figure(figsize=(13,10))
-    fig.suptitle('Prohibitive Boundary Position at %s \n Agents Trained Over %s Episodes \n Agents Evaluated Over %s Episodes' %(prohibition_position[i],episode_number,evaluation_episode_number),fontsize=16)
+    #fig.suptitle('Prohibitive Boundary Position at %s \n Agents Trained Over %s Episodes \n Agents Evaluated Over %s Episodes' %(prohibition_position[i],episode_number,evaluation_episode_number),fontsize=16)
     plt.plot(x,reward_record_without_average,label='Normal Training \n Evaluation Average: \n %s' %average_without,color='black',linewidth=3,linestyle='-.')
     for j in range(len(prohibition_parameter)):
         average=0
@@ -43,4 +43,4 @@ for i in range(len(prohibition_position)):
     plt.xlabel('Episode Number', fontsize='xx-large', fontweight='bold')
     plt.ylabel('Episode Reward', fontsize='xx-large', fontweight='bold')
     plt.legend(loc='upper left',ncol=1, borderaxespad=0,prop={'size': 14})
-    plt.savefig('Inverted_Pendulum_with_Boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('Inverted_Pendulum_with_Boundary_at_%s.png' %prohibition_position[i])
