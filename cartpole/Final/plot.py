@@ -33,14 +33,14 @@ average_without=sum(evaluation_reward_record_without)/evaluation_episode_number
 color_scheme=['yellowgreen','magenta','orange','blue','red','cyan','green']
 x=range(len(measure_length))
 for i in range(len(prohibition_position)):
-    fig=plt.figure(figsize=(13,10))
-   #fig.suptitle('Agents Trained Over %s Episodes \n Agents Evaluated Over %s Episodes' %(episode_number,evaluation_episode_number),fontsize=16)
+    fig=plt.figure(figsize=(13,7))
+    plt.text(50, 450, 'Protective Boundadry \n at Position %s' %(prohibition_position[i]),fontsize=14)
     plt.plot(x,reward_record_without_average,label='Normal Training \n Evaluation Average: \n %s' %average_without,color='black',linewidth=3,linestyle='-.')
     for j in range(len(prohibition_parameter)):
         average=0
         average=(sum(evaluation_reward_record[i][j])/evaluation_episode_number)
         plt.plot(x,reward_record_average[i][j],label='Parameter %s \n Evaluation Average: \n %s' %(prohibition_parameter[j],average),color=color_scheme[j])
-    plt.xlabel('Episode Number', fontsize='xx-large', fontweight='bold')
-    plt.ylabel('Episode Reward', fontsize='xx-large', fontweight='bold')
-    plt.legend(loc='upper left',ncol=1, borderaxespad=0,prop={'size': 14})
-    plt.savefig('Cartpole_with_Boundary_at_%s.png' %prohibition_position[i])
+    plt.xlabel('Episode Number', fontsize='large')
+    plt.ylabel('Episode Reward', fontsize='large')
+    plt.legend(loc='upper left',ncol=1, borderaxespad=0,prop={'size': 11})
+    plt.savefig('CartPole_with_Boundary_at_%s.png' %prohibition_position[i])

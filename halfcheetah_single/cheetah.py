@@ -50,7 +50,7 @@ Termination:
                     ang > -1.0 and ang < 1.0)
 '''
 #setparameters
-num_steps=500 #update exploration rate over n steps
+num_steps=1000 #update exploration rate over n steps
 initial_value=0.9 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
