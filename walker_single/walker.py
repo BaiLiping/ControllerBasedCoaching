@@ -58,7 +58,7 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=5000
+episode_number=2000
 evaluation_episode_number=10
 average_over=100
 
@@ -67,7 +67,7 @@ def moving_average(x, w):
 
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
-'''
+
 #Normal Agent
 environment_normal=Environment.create(environment='gym',level='Walker2d-v2')
 reward_record_normal=[]
@@ -109,8 +109,8 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_normal, open( "evaluation_normal_record.p", "wb"))
 agent_normal.close()
 environment_normal.close()
-'''
-reward_record_normal_average=pickle.load(open( "without_average_record.p", "rb"))
+
+#reward_record_normal_average=pickle.load(open( "without_average_record.p", "rb"))
 
 #training single action agent
 environment_single = Environment.create(environment='gym', level='Walker2dBLP-v0')
@@ -195,10 +195,6 @@ for _ in tqdm(range(evaluation_episode_number)):
     evaluation_reward_record_single.append(episode_reward)
     print(evaluation_reward_record_single)
 pickle.dump(evaluation_reward_record_single, open( "evaluation_single_record.p", "wb"))
-agent_thigh.close()
-agent_leg.close()
-agent_foot.close()
-environment_single.close()
 
 #plot
 x=range(len(measure_length))
@@ -209,3 +205,11 @@ plt.xlabel('episodes')
 plt.ylabel('reward')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
 plt.savefig('plot_compare.png')
+
+agent_thigh.close()
+agent_leg.close()
+agent_foot.close()
+agent_thigh_left.close()
+agent_leg_left.close()
+agent_foot_left.close()
+environment_single.close()
