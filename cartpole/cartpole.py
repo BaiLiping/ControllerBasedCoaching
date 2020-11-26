@@ -75,8 +75,8 @@ for _ in tqdm(range(episode_number)):
     reward_record_without.append(episode_reward)
 temp=np.array(reward_record_without)
 reward_record_without_average=moving_average(temp,average_over)
-pickle.dump(reward_record_without_average, open( "cartpole_without_average_record.p", "wb"))
-pickle.dump(reward_record_without, open( "cartpole_without_record.p", "wb"))
+pickle.dump(reward_record_without_average, open( "without_average_record.p", "wb"))
+pickle.dump(reward_record_without, open( "without_record.p", "wb"))
 
 #evaluate the agent without Boundary
 episode_reward = 0.0
@@ -94,7 +94,7 @@ for _ in tqdm(range(evaluation_episode_number)):
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward += reward
     evaluation_reward_record_without.append(episode_reward)
-pickle.dump(evaluation_reward_record_without, open( "evaluation_cartpole_without_record.p", "wb"))
+pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 print(evaluation_reward_record_without)
 agent.close()
 
@@ -158,9 +158,9 @@ for k in range(len(prohibition_position)):
         agent.close()
 
 #save data
-pickle.dump(reward_record, open( "cartpole_record.p", "wb"))
-pickle.dump(reward_record_average, open( "cartpole_average_record.p", "wb"))
-pickle.dump(evaluation_reward_record, open( "evaluation_cartpole_record.p", "wb"))
+pickle.dump(reward_record, open( "record.p", "wb"))
+pickle.dump(reward_record_average, open( "average_record.p", "wb"))
+pickle.dump(evaluation_reward_record, open( "evaluation_record.p", "wb"))
 
 
 #plot training results

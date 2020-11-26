@@ -171,7 +171,7 @@ for i in range(len(prohibition_position)):
     plt.xlabel('episodes')
     plt.ylabel('reward')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
-    plt.savefig('single_pendulum_with_boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('Inverted_pendulum_with_boundary_at_%s_plot.png' %prohibition_position[i])
 
 #indicate evaluation results
 average_without=sum(evaluation_reward_record_without)/evaluation_episode_number

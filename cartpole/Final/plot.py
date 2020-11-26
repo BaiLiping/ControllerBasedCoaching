@@ -8,14 +8,14 @@ from tqdm import tqdm
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
-episode_number=2000
+episode_number=300
 evaluation_episode_number=5
-average_over=100
+average_over=40
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-3,-4,-5,-6,-7]
-prohibition_position=[0.4,0.5,0.6,0.7]
+prohibition_parameter=[0,-5,-7,-10,-12,-15]
+prohibition_position=[0.5,0.7,0.9]
 
 reward_record_without=pickle.load(open( "without_record.p", "rb"))
 evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
@@ -43,4 +43,4 @@ for i in range(len(prohibition_position)):
     plt.xlabel('Episode Number', fontsize='xx-large', fontweight='bold')
     plt.ylabel('Episode Reward', fontsize='xx-large', fontweight='bold')
     plt.legend(loc='upper left',ncol=1, borderaxespad=0,prop={'size': 14})
-    plt.savefig('Double_Pendulum_with_Boundary_at_%s_plot.png' %prohibition_position[i])
+    plt.savefig('Cartpole_with_Boundary_at_%s_plot.png' %prohibition_position[i])
