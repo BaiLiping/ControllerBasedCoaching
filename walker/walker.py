@@ -21,12 +21,16 @@ average_over=100
 
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='Walker2d-v2')
+    environment='gym', level='Walker2d-v3')
 '''
 For detailed notes on how to interact with the Mujoco environment, please refer
 to note https://bailiping.github.io/Mujoco/
 
 Observation:
+    def _get_obs(self):
+        qpos = self.sim.data.qpos
+        qvel = self.sim.data.qvel
+        return np.concatenate([qpos[1:], np.clip(qvel, -10, 10)]).ravel()
 
     Num    Observation                                 Min            Max
            rootx(_get_obs states from  root z)          Not Limited
@@ -69,9 +73,8 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-10,-20,-30,-40]
-prohibition_position=[0.1,0.3,0.5,0.7,0.9]
-'''
+prohibition_parameter=[0,-5,-10,-15,-20]
+prohibition_position=[0.3,0.7,0.9]
 #compare to agent trained without prohibitive boundary
 #training of agent without prohibitive boundary
 reward_record_without=[]
@@ -123,9 +126,9 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
 
-'''
-reward_record_without_average=pickle.load(open("without_average_record.p", "rb"))
-evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
+
+#reward_record_without_average=pickle.load(open("without_average_record.p", "rb"))
+#evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
@@ -142,12 +145,12 @@ for k in range(len(prohibition_position)):
             states = environment.reset()
             terminal = False
             while not terminal:
-                y_position=states[2]
+                y_position=states[1]
                 actions = agent.act(states=states)
                 if y_position>=prohibition_position[k]:
                     actions=[0,0,0,0,0,0]
                     states, terminal, reward= environment.execute(actions=actions)
-                    states[2]=prohibition_position[k]*0.9
+                    states[1]=prohibition_position[k]*0.9
                     for p in range(9):
                         vel_position=8+p
                         states[vel_position]=0
@@ -157,7 +160,7 @@ for k in range(len(prohibition_position)):
                 elif y_position<=-prohibition_position[k]:
                     actions=[0,0,0,0,0,0]
                     states, terminal, reward = environment.execute(actions=actions)
-                    states[2]=prohibition_position[k]*0.9
+                    states[1]=prohibition_position[k]*0.9
                     for p in range(9):
                         vel_position=8+p
                         states[vel_position]=0
