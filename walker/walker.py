@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 #setparameters
-num_steps=1000 #update exploration rate over n steps
+num_steps=500 #update exploration rate over n steps
 initial_value=0.9 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -15,7 +15,7 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=5000
+episode_number=2000
 evaluation_episode_number=50
 average_over=100
 

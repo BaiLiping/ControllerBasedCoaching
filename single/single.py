@@ -43,8 +43,8 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0,-10,-20,-30,-40,-50]
-prohibition_position=[0.05,0.1,0.2,0.3,0.4,0.5]
+prohibition_parameter=[0,-5,-7,-10,-12,-15]
+prohibition_position=[0.1,0.3,0.6]
 
 #compare to agent trained without prohibitive boundary
 

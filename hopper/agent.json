@@ -12,7 +12,7 @@
     "likelihood_ratio_clipping": 0.09955676846552193,
     "discount": 1.0,
     "predict_terminal_values": false,
-    "baseline": {"type": "auto", "rnn": false},
+    "baseline": {"type": "auto","rnn": false},
     "baseline_optimizer": {"optimizer": "adam", "learning_rate": 0.001, "multi_step": 10},
     "state_preprocessing": "linear_normalization",
     "reward_preprocessing": null,
