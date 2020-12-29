@@ -21,7 +21,7 @@ average_over=100
 
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='InvertedDoublePendulum-v2', max_episode_timesteps=300)
+    environment='gym', level='InvertedDoublePendulum-v2')
 '''
     Observation:
 
