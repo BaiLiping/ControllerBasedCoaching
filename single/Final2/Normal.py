@@ -45,7 +45,7 @@ length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0]
-prohibition_position=[0.15,0.17]
+prohibition_position=[0.19,0.2]
 '''
 #training of agent without prohibitive boundary
 reward_record_without=[]

@@ -4,11 +4,10 @@ import numpy as np
 import math
 import pickle
 from tqdm import tqdm
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+
 
 #setparameters
-num_steps=50 #update exploration rate over n steps
+num_steps=10 #update exploration rate over n steps
 initial_value=0.95 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -16,13 +15,13 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=200
+episode_number=100
 evaluation_episode_number=5
-average_over=20
+average_over=10
 
 # Pre-defined or custom environment
 environment = Environment.create(
-    environment='gym', level='InvertedPendulum-v2')
+    environment='gym', level='InvertedPendulum-v2', max_episode_timesteps=300)
 '''
     def step(self, a):
         reward = 1.0
@@ -44,11 +43,14 @@ def moving_average(x, w):
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
-prohibition_parameter=[0]
-prohibition_position=[0.15,0.17]
-'''
+prohibition_parameter=[0,-5,-7,-10,-12,-15]
+prohibition_position=[0.1,0.3,0.6]
+
+#compare to agent trained without prohibitive boundary
+
 #training of agent without prohibitive boundary
 reward_record_without=[]
+
 agent_without = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
 states=environment.reset()
 terminal = False
@@ -93,22 +95,16 @@ for _ in tqdm(range(evaluation_episode_number)):
     evaluation_reward_record_without.append(episode_reward)
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
-'''
-reward_record_without_average=pickle.load(open( "without_average_record.p", "rb"))
-reward_record_without=pickle.load(open( "without_record.p", "rb"))
-evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 
-kp=25
-kd=3
-#training with coaching
+#training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
 evaluation_reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),evaluation_episode_number))
+
 for k in range(len(prohibition_position)):
     #training
     for i in range(len(prohibition_parameter)):
         record=[]
-        angle_record=[]
         agent = Agent.create(agent='agent.json', environment=environment)
         print('training agent with boundary position at %s and prohibitive parameter %s' %(prohibition_position[k],prohibition_parameter[i]))
         for _ in tqdm(range(episode_number)):
@@ -116,50 +112,31 @@ for k in range(len(prohibition_position)):
             states = environment.reset()
             terminal = False
             while not terminal:
+                x_position=states[0]
                 theta=states[1]
-                angular_velocity=states[3]
-                theta_states=[theta,angular_velocity]
                 actions = agent.act(states=states)
                 if theta>=prohibition_position[k]:
-                    #print('angular_velocity: ',angular_velocity)
-                    #x=np.array(theta_states)
-                    #x_ = PolynomialFeatures(degree=6, include_bias=True).fit_transform([x])
-                    #actions_predict=model.predict(x_)
-                    #actions_predict=np.clip(actions_predict.copy(), -5, 5)
-                    #reward-=abs(actions_predict)
-                    #print('actions_predict',actions_predict)
-                    #states, terminal, reward = environment.execute(actions=actions_predict)
-                    #actions=5
-                    actions=kp*theta+kd*angular_velocity
+                    actions=1
                     states, terminal, reward = environment.execute(actions=actions)
-                    #states[1]=theta*0.09
-                    #states[3]= 0
-                    reward=-1
+                    reward+= prohibition_parameter[i]
+                    states=[x_position,0.9*prohibition_position[k],0,0]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 elif theta<=-prohibition_position[k]:
-                    #actions=-5
-                    actions=kp*theta+kd*angular_velocity
+                    actions=-1
                     states, terminal, reward = environment.execute(actions=actions)
-                    #states[1]=theta*0.09
-                    #states[3]= 0
-                    reward=-1
+                    reward+= prohibition_parameter[i]
+                    states=[x_position,-0.9*prohibition_position[k],0,0]
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 else:
                     states, terminal, reward = environment.execute(actions=actions)
                     agent.observe(terminal=terminal, reward=reward)
                     episode_reward+=reward
-                #print('action ',actions)
             record.append(episode_reward)
-            #print(episode_reward)
         reward_record[k][i]=record
         temp=np.array(record)
         reward_record_average[k][i]=moving_average(temp,average_over)
-        x_angle=range(len(angle_record))
-        plt.figure(figsize=(30,10))
-        plt.plot(x_angle,angle_record)
-        plt.savefig('angle%s%s.png' %(k,i))
 
         #evaluate
         episode_reward = 0.0
@@ -177,12 +154,11 @@ for k in range(len(prohibition_position)):
             eva_reward_record.append(episode_reward)
         evaluation_reward_record[k][i]=eva_reward_record
         agent.close()
-
-
 #save data
 pickle.dump(reward_record, open( "record.p", "wb"))
 pickle.dump(reward_record_average, open( "average_record.p", "wb"))
 pickle.dump(evaluation_reward_record, open( "evaluation_record.p", "wb"))
+
 
 #plot training results
 color_scheme=['yellowgreen','magenta','orange','blue','red','cyan','green']

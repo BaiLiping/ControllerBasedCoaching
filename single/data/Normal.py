@@ -45,7 +45,7 @@ length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
 
 prohibition_parameter=[0]
-prohibition_position=[0.15,0.17]
+prohibition_position=[0.19,0.2]
 '''
 #training of agent without prohibitive boundary
 reward_record_without=[]
@@ -98,8 +98,7 @@ reward_record_without_average=pickle.load(open( "without_average_record.p", "rb"
 reward_record_without=pickle.load(open( "without_record.p", "rb"))
 evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 
-kp=25
-kd=3
+model=pickle.load(open('regression_model_6.sav', 'rb'))
 #training with coaching
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
 reward_record=np.zeros((len(prohibition_position),len(prohibition_parameter),episode_number))
@@ -129,20 +128,16 @@ for k in range(len(prohibition_position)):
                     #reward-=abs(actions_predict)
                     #print('actions_predict',actions_predict)
                     #states, terminal, reward = environment.execute(actions=actions_predict)
-                    #actions=5
-                    actions=kp*theta+kd*angular_velocity
                     states, terminal, reward = environment.execute(actions=actions)
-                    #states[1]=theta*0.09
-                    #states[3]= 0
+                    states[1]=theta*0.09
+                    states[3]= 0
                     reward=-1
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 elif theta<=-prohibition_position[k]:
-                    #actions=-5
-                    actions=kp*theta+kd*angular_velocity
                     states, terminal, reward = environment.execute(actions=actions)
-                    #states[1]=theta*0.09
-                    #states[3]= 0
+                    states[1]=theta*0.09
+                    states[3]= 0
                     reward=-1
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
