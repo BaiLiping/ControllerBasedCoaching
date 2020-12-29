@@ -36,14 +36,26 @@ for _ in tqdm(range(episode_number)):
     states = environment.reset()
     terminal= False
     while not terminal:
+
         actions = agent_without.act(states=states)
         states, terminal, reward = environment.execute(actions=actions)
+        sintheta1=states[1]
+        sintheta2=states[2]
+        theta1=math.asin(sintheta1)
+        theta2=math.asin(sintheta2)
+        angle=theta1-theta2
+
+        if abs(angle)>0.5:
+            reward=10
+        else:
+            reward=0.5
+
         #reward-=abs(actions)
         episode_reward+=reward
         angle_record.append(states[1])
         agent_without.observe(terminal=terminal, reward=reward)
     reward_record_without.append(episode_reward)
-agent_without.save(directory='model2', format='numpy')
+agent_without.save(directory='model3', format='numpy')
 x=range(episode_number)
 x_angle=range(len(angle_record))
 plt.figure(figsize=(30,10))
