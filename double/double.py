@@ -79,12 +79,11 @@ def moving_average(x, w):
 
 length=np.zeros(episode_number)
 measure_length=moving_average(length,average_over)
-
-prohibition_parameter=[0,-3,-4,-5,-6,-7]
-prohibition_position=[0.4,0.5,0.6,0.7]
+prohibition_parameter=[0]
+prohibition_position=[0.5,0.6,0.7]
 
 #compare to agent trained without prohibitive boundary
-
+'''
 #training of agent without prohibitive boundary
 reward_record_without=[]
 
@@ -118,6 +117,8 @@ plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=
 plt.savefig('plot.png')
 
 
+
+
 #evaluate the agent without Boundary
 episode_reward = 0.0
 evaluation_reward_record_without=[]
@@ -136,6 +137,13 @@ for _ in tqdm(range(evaluation_episode_number)):
     evaluation_reward_record_without.append(episode_reward)
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 agent_without.close()
+'''
+reward_record_without_average=pickle.load(open( "without_average_record.p", "rb"))
+reward_record_without=pickle.load(open( "without_record.p", "rb"))
+evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
+
+kp=[25,-10]
+kd=[3,-2]
 
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
@@ -161,14 +169,14 @@ for k in range(len(prohibition_position)):
                 angle=theta1-theta2
                 actions = agent.act(states=states)
                 if angle>=prohibition_position[k]:
-                    actions=1
+                    actions=5
                     states, terminal, reward = environment.execute(actions=actions)
                     states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
-                    reward+= prohibition_parameter[i]
+                    reward= -1
                     episode_reward+=reward
                     agent.observe(terminal=terminal, reward=reward)
                 elif angle<=-prohibition_position[k]:
-                    actions=-1
+                    actions=-5
                     states, terminal, reward = environment.execute(actions=actions)
                     states=[states_old[0],math.sin(0.9*theta1),math.sin(0.9*theta2),math.cos(0.9*theta1),math.cos(0.9*theta2),0,0,0,states_old[8],states_old[9],states_old[10]]
                     reward+= prohibition_parameter[i]
@@ -180,7 +188,7 @@ for k in range(len(prohibition_position)):
                     episode_reward+=reward
 
             record.append(episode_reward)
-            print(episode_reward)
+            #print(episode_reward)
 
         reward_record[k][i]=record
         temp=np.array(record)
