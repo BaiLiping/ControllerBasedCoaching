@@ -15,7 +15,7 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=2000
+episode_number=2500
 evaluation_episode_number=5
 average_over=100
 
@@ -84,7 +84,7 @@ prohibition_parameter=[0]
 prohibition_position=[0.5,0.6]
 
 #compare to agent trained without prohibitive boundary
-'''
+
 #training of agent without prohibitive boundary
 reward_record_without=[]
 
@@ -98,12 +98,12 @@ for _ in tqdm(range(episode_number)):
     states = environment.reset()
     terminal= False
     while not terminal:
-        sintheta1=states[1]
-        sintheta2=states[2]
-        theta1=math.asin(sintheta1)
-        theta2=math.asin(sintheta2)
-        angle=theta1-theta2
-        angle_record.append(angle)
+        #sintheta1=states[1]
+        #sintheta2=states[2]
+        #theta1=math.asin(sintheta1)
+        #theta2=math.asin(sintheta2)
+        #angle=theta1-theta2
+        #angle_record.append(angle)
         actions = agent_without.act(states=states)
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward+=reward
@@ -114,10 +114,10 @@ reward_record_without_average=moving_average(temp,average_over)
 pickle.dump(reward_record_without_average, open( "without_average_record.p", "wb"))
 pickle.dump(reward_record_without, open( "without_record.p", "wb"))
 
-x_angle=range(len(angle_record))
-plt.figure(figsize=(30,10))
-plt.plot(x_angle,angle_record)
-plt.savefig('angle.png')
+#x_angle=range(len(angle_record))
+#plt.figure(figsize=(30,10))
+#plt.plot(x_angle,angle_record)
+#plt.savefig('angle.png')
 
 #plot
 x=range(len(measure_length))
@@ -148,10 +148,10 @@ for _ in tqdm(range(evaluation_episode_number)):
 pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
 
 
-'''
-reward_record_without_average=pickle.load(open( "without_average_record.p", "rb"))
-reward_record_without=pickle.load(open( "without_record.p", "rb"))
-evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
+
+#reward_record_without_average=pickle.load(open( "without_average_record.p", "rb"))
+#reward_record_without=pickle.load(open( "without_record.p", "rb"))
+#evaluation_reward_record_without=pickle.load(open( "evaluation_without_record.p", "rb"))
 
 #training and evaluation with boundary
 reward_record_average=np.zeros((len(prohibition_position),len(prohibition_parameter),len(measure_length)))
@@ -179,16 +179,12 @@ for k in range(len(prohibition_position)):
                 angle=theta1-theta2
                 actions = agent.act(states=states)
                 if angle>=prohibition_position[k]:
-                    print('angle',angle)
                     actions=kp[0]*sintheta1+kp[1]*sintheta2+kd[0]*states[6]+kd[1]*states[7]
-                    print('action: ',actions)
                     states, terminal, reward = environment.execute(actions=actions)
                     reward=-1
                     agent.observe(terminal=terminal, reward=reward)
                 elif angle<=-prohibition_position[k]:
-                    print('angle',angle)
                     actions=kp[0]*sintheta1+kp[1]*sintheta2+kd[0]*states[6]+kd[1]*states[7]
-                    print('action: ',actions)
                     states, terminal, reward = environment.execute(actions=actions)
                     reward=-1
                     agent.observe(terminal=terminal, reward=reward)                   
