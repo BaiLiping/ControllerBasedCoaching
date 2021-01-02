@@ -21,12 +21,15 @@ for k in range(30):
     states = environment.reset()
     terminal=False
     while not terminal:
-    	theta_states.append([states[1],states[3]])
+    	temp=[states[1],states[3]]
+    	theta_states.append(temp)
+    	print('states:',temp)
     	actions, internals = coach.act(states=states, internals=internals, independent=True, deterministic=True)
     	states, terminal, reward = environment.execute(actions=actions)
     	actions_record.append(actions)
+    	print('actions:',actions)
 
 x, y = np.array(theta_states), np.array(actions_record)
-x_ = PolynomialFeatures(degree=6, include_bias=True).fit_transform(x)
-model = LinearRegression().fit(x_, y)
-pickle.dump(model, open('coaching_model.sav', 'wb'))
+#x_ = PolynomialFeatures(degree=6, include_bias=True).fit_transform(x)
+#model = LinearRegression().fit(x_, y)
+#pickle.dump(model, open('coaching_model.sav', 'wb'))

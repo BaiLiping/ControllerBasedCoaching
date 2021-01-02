@@ -7,26 +7,18 @@ from tqdm import tqdm
 
 
 #setparameters
-
-episode_number=3000
-evaluation_episode_number=10
-average_over=100
-
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
-
-length=np.zeros(episode_number)
-measure_length=moving_average(length,average_over)
-
-prohibition_parameter=[0,-5,-10,-13,-15]
-prohibition_position=[0.3,0.7,0.9]
-
-def set_exploration(num_steps,initial_value,decay_rate,set_type='exponential'):
-    exploration=dict(type=set_type, unit='timesteps',
+num_steps=1000 #update exploration rate over n steps
+initial_value=0.9 #initial exploartion rate
+decay_rate=0.5 #exploration rate decay rate
+set_type='exponential' #set the type of decay linear, exponential
+exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
-    return exploration
-exploration=set_exploration(100,0.9,0.5)
+
+episode_number=10000
+evaluation_episode_number=50
+average_over=100
+
 environment = Environment.create(environment='gym', level='Walker2d-v3')
 '''
 For detailed notes on how to interact with the Mujoco environment, please refer
@@ -69,11 +61,15 @@ Termination:
         done = not (height > 0.8 and height < 2.0 and
                     ang > -1.0 and ang < 1.0)
 '''
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     reward_record_without=[]
+
     agent_without = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
-    print('training agent without boundary')
+    states=environment.reset()
+    reward_record_without=[]
+    terminal = False
+    print('Training Normal Agent')
     for _ in tqdm(range(episode_number)):
         episode_reward=0
         states = environment.reset()
@@ -81,41 +77,27 @@ if __name__ == "__main__":
         while not terminal:
             actions = agent_without.act(states=states)
             states, terminal, reward = environment.execute(actions=actions)
+            if abs(states[1])>0.2:
+                terminal = 1
             episode_reward+=reward
             agent_without.observe(terminal=terminal, reward=reward)
         reward_record_without.append(episode_reward)
-        print(episode_reward)
-    temp=np.array(reward_record_without)
-    reward_record_without_average=moving_average(temp,average_over)
-    pickle.dump(reward_record_without_average, open( "without_average_record.p", "wb"))
-    pickle.dump(reward_record_without, open( "without_record.p", "wb"))
-
-    #plot
-    x=range(len(measure_length))
-    plt.figure(figsize=(20,10))
-    plt.plot(x,reward_record_without_average,label='without prohibitive boundary',color='black')
-    plt.xlabel('episodes')
-    plt.ylabel('reward')
-    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center left',ncol=2,shadow=True, borderaxespad=0)
-    plt.savefig('plot.png')
+    pickle.dump(reward_record_without, open( "walker_without_record.p", "wb"))
 
     #evaluate the agent without Boundary
     episode_reward = 0.0
-    evaluation_reward_record_without=[]
-    print('evaluating agent without boundary')
+    evaluation_record_without=[]
+    print('Evaluating Normal Agent')
     for _ in tqdm(range(evaluation_episode_number)):
         episode_reward=0
         states = environment.reset()
         internals = agent_without.initial_internals()
         terminal = False
         while not terminal:
-            actions, internals = agent_without.act(
-                states=states, internals=internals, independent=True, deterministic=True
-            )
+            actions, internals = agent_without.act(states=states, internals=internals, independent=True, deterministic=True)
             states, terminal, reward = environment.execute(actions=actions)
             episode_reward += reward
-        evaluation_reward_record_without.append(episode_reward)
-        print(evaluation_reward_record_without)
-    pickle.dump(evaluation_reward_record_without, open( "evaluation_without_record.p", "wb"))
-    agent_without.save(directory='model',format='numpy')
+        evaluation_record_without.append(episode_reward)
+    pickle.dump(evaluation_record_without, open( "walker_evaluation_without_record.p", "wb"))
+    agent_without.save(directory='Walker_RL', format='numpy')
     agent_without.close()
