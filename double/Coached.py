@@ -10,8 +10,8 @@ from Normal import evaluation_episode_number
 from Normal import exploration
 from Normal import environment
 
-reward_record=np.zeros(episode_number)
-evaluation_reward_record=np.zeros(evaluation_episode_number)
+reward_record=[]
+evaluation_reward_record=[]
 
 kp=[-0.6, -3]
 kd=[-0.47, -0.7]
@@ -53,7 +53,7 @@ for epi in tqdm(range(episode_number)):
                 print('intervention:',intervention)
                 states, terminal, reward = environment.execute(actions=intervention)
                 if terminal == 1:
-                    break
+                    continue
         
         actions = agent.act(states=states)
         states, terminal, reward = environment.execute(actions=actions)
@@ -64,7 +64,6 @@ for epi in tqdm(range(episode_number)):
 
 #evaluate
 episode_reward = 0.0
-eva_reward_record=[]
 for j in tqdm(range(evaluation_episode_number)):
     episode_reward=0
     states = environment.reset()
@@ -74,8 +73,7 @@ for j in tqdm(range(evaluation_episode_number)):
         actions, internals = agent.act(states=states, internals=internals, independent=True, deterministic=True)
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward += reward
-    eva_reward_record.append(episode_reward)
-evaluation_reward_record=eva_reward_record
+    evaluation_reward_record.append(episode_reward)
 agent.close()
 #save data
 pickle.dump(reward_record, open( "double_record.p", "wb"))

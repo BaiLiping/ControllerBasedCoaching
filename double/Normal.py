@@ -70,15 +70,6 @@ environment = Environment.create(
             ]).ravel()
 '''
 
-# Intialize reward record and set parameters
-#define the length of the vector
-
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
-
-length=np.zeros(episode_number)
-measure_length=moving_average(length,average_over)
-
 
 #compare to agent trained without prohibitive boundary
 if __name__ == "__main__":
@@ -88,7 +79,7 @@ if __name__ == "__main__":
     agent_without = Agent.create(agent='agent.json', environment=environment,exploration=exploration)
     states=environment.reset()
     terminal = False
-    print('training agent without boundary')
+    print('Trainiing Normal Agent')
     for _ in tqdm(range(episode_number)):
         episode_reward=0
         states = environment.reset()
@@ -99,12 +90,14 @@ if __name__ == "__main__":
             episode_reward+=reward
             agent_without.observe(terminal=terminal, reward=reward)
         reward_record_without.append(episode_reward)
+    print('Normal Agent Saved As Double_RL')
+    agent_without.save(directory='Double_RL', format='numpy')
     pickle.dump(reward_record_without, open( "double_without_record.p", "wb"))
 
     #evaluate the agent without Boundary
     episode_reward = 0.0
     evaluation_reward_record_without=[]
-    print('evaluating agent without boundary')
+    print('Evaluating Normal Agent')
     for _ in tqdm(range(evaluation_episode_number)):
         episode_reward=0
         states = environment.reset()

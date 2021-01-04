@@ -66,6 +66,8 @@ if __name__ == "__main__":
             episode_reward+=reward
             agent_without.observe(terminal=terminal, reward=reward)
         reward_record_without.append(episode_reward)
+    print('Normal Agent Saved As Hopper_RL')
+    agent_without.save(directory='Hopper_RL', format='numpy')
     pickle.dump(reward_record_without, open( "hopper_without_record.p", "wb"))
 
     #evaluate the agent without Boundary

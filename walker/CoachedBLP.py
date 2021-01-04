@@ -10,15 +10,21 @@ from Normal import evaluation_episode_number
 from Normal import exploration
 from Normal import environment
 
-reward_record=np.zeros(episode_number)
-evaluation_reward_record=np.zeros(evaluation_episode_number)
+reward_record=[]
+evaluation_reward_record=[]
 
-thigh_actuator_kp=[7 ,0.001]
-leg_actuator_kp= [5, -0.002]
-foot_actuator_kp=[4.5 , 0.005]
-left_thigh_actuator_kp=[1.7,0.003]
-left_leg_actuator_kp=[5 ,-0.01]
-left_foot_actuator_kp=[ -1.48 ,0.001]
+thigh_actuator_kp=[-0.6]
+thigh_actuator_kd=[0.03]
+leg_actuator_kp=[-0.7]
+leg_actuator_kd=[-0.21]
+foot_actuator_kp=[-0.9]
+foot_actuator_kd=[-0.13]
+left_thigh_actuator_kp=[-0.73]
+left_thigh_actuator_kd=[-0.18]
+left_leg_actuator_kp=[-1.29]
+left_leg_actuator_kd=[-0.25]
+left_foot_actuator_kp=[-1.07]
+left_foot_actuator_kd=[-0.15]
 
 #training with coaching
 agent = Agent.create(agent='agent.json', environment=environment)
@@ -30,45 +36,59 @@ for _ in tqdm(range(episode_number)):
     count=0
     positive=0
     consecutive=[0]
-    z_batch=[0]
+    y_velocity_batch=[0]
     cons_position=0
 
     while not terminal:
-        z_old=z_batch[count]
         count+=1
-        z=1.25-states[0]
-        z_batch.append(z)
+        print(count)
+        rootz=states[0]
+        velocity_rootz=states[9]
 
-        if abs(z)<=prohibition_position[k]:
-            if abs(states[7])-abs(velocity_old)>0 and states[7]*velocity_old>0:
-                old_count=consecutive[cons_position]
-                consecutive.append(count)
-                cons_position+=1
-                if old_count==count-1:
-                    positive+=1
-                else:
-                    positive=1
+        rooty=states[1]
+        velocity_rooty=states[10]
 
-            if positive==3:
-                positive=0
-                thigh_actions = thigh_actuator_kp[0]*rooty+thigh_actuator_kd[0]*velocity_rooty+thigh_actuator_kp[1]*thigh_angle+thigh_actuator_kd[1]*thigh_angular_velocity+thigh_actuator_kp[2]*leg_angle+thigh_actuator_kd[2]*leg_angular_velocity+thigh_actuator_kp[3]*foot_angle+thigh_actuator_kd[3]*foot_angular_velocity
-                leg_actions = leg_actuator_kp[0]*rooty+leg_actuator_kd[0]*velocity_rooty+leg_actuator_kp[1]*thigh_angle+leg_actuator_kd[1]*thigh_angular_velocity+leg_actuator_kp[2]*leg_angle+leg_actuator_kd[2]*leg_angular_velocity+leg_actuator_kp[3]*foot_angle+leg_actuator_kd[3]*foot_angular_velocity
-                foot_actions = foot_actuator_kp[0]*rooty+foot_actuator_kd[0]*velocity_rooty+foot_actuator_kp[1]*thigh_angle+foot_actuator_kd[1]*thigh_angular_velocity+foot_actuator_kp[2]*leg_angle+foot_actuator_kd[2]*leg_angular_velocity+foot_actuator_kp[3]*foot_angle+foot_actuator_kd[3]*foot_angular_velocity
-                intervention=[thigh_actions,leg_actions,foot_actions]
-                print('intervention:',intervention)
-                states, terminal, reward = environment.execute(actions=intervention)
-                if terminal == 1:
-                    break
-        actions = agent.act(states=states)
-        states, terminal, reward = environment.execute(actions=actions)
-        agent.observe(terminal=terminal, reward=reward)
-        episode_reward+=reward
+        thigh_angle=states[2]
+        thigh_angular_velocity=states[11]
+
+        leg_angle=states[3]
+        leg_angular_velocity=states[12]
+
+        foot_angle=states[4]
+        foot_angular_velocity=states[13]
+
+        left_thigh_angle=states[5]
+        left_thigh_angular_velocity=states[14]
+
+        left_leg_angle=states[6]
+        left_leg_angular_velocity=states[15]
+
+        left_foot_angle=states[7]
+        left_foot_angular_velocity=states[16]
+
+        if abs(velocity_rooty)<=1.3 and abs(velocity_rooty)>=1:
+            print('before:', velocity_rooty)
+            thigh_actions = thigh_actuator_kp[0]*rooty+thigh_actuator_kd[0]*velocity_rooty
+            leg_actions = leg_actuator_kp[0]*rooty+leg_actuator_kd[0]*velocity_rooty
+            foot_actions = foot_actuator_kp[0]*rooty+foot_actuator_kd[0]*velocity_rooty
+            left_thigh_actions = left_thigh_actuator_kp[0]*rooty+left_thigh_actuator_kd[0]*velocity_rooty
+            left_leg_actions = left_leg_actuator_kp[0]*rooty+left_leg_actuator_kd[0]*velocity_rooty
+            left_foot_actions = left_foot_actuator_kp[0]*rooty+left_foot_actuator_kd[0]*velocity_rooty
+            intervention=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
+            print('intervention:',intervention)
+            states, terminal, reward = environment.execute(actions=intervention)
+            print('after', states[10])
+        else:
+            actions = agent.act(states=states)
+            states, terminal, reward = environment.execute(actions=actions)
+            agent.observe(terminal=terminal, reward=reward)
+            episode_reward+=reward
+    
     reward_record.append(episode_reward)
 
 #evaluate
 print('Evaluating Agent with PID Coaching')
 episode_reward = 0.0
-eva_reward_record=[]
 for j in tqdm(range(evaluation_episode_number)):
     episode_reward=0
     states = environment.reset()
@@ -78,10 +98,10 @@ for j in tqdm(range(evaluation_episode_number)):
         actions, internals = agent.act(states=states, internals=internals, independent=True, deterministic=True)
         states, terminal, reward = environment.execute(actions=actions)
         episode_reward += reward
-    eva_reward_record.append(episode_reward)
-evaluation_reward_record=eva_reward_record
+    evaluation_reward_record.append(episode_reward)
+
 agent.close()
 #save data
-pickle.dump(reward_record, open( "hopper_record.p", "wb"))
-pickle.dump(evaluation_reward_record, open( "hopper_evaluation_record.p", "wb"))
+pickle.dump(reward_record, open( "walker_record.p", "wb"))
+pickle.dump(evaluation_reward_record, open( "walker_evaluation_record.p", "wb"))
 environment.close()

@@ -4,7 +4,7 @@
     "network": {"type": "auto", "rnn": false},
     "use_beta_distribution": true,
     "memory": "minimum",
-    "batch_size": 10,
+    "batch_size": 3,
     "update_frequency": 1,
     "learning_rate": 0.00005,
     "multi_step": 5,

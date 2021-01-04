@@ -38,15 +38,6 @@ environment = Environment.create(environment='gym', level='InvertedPendulum-v2')
 # Intialize reward record and set parameters
 #define the length of the vector
 
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
-
-length=np.zeros(episode_number)
-measure_length=moving_average(length,average_over)
-
-prohibition_parameter=[0]
-prohibition_position=[0.2,0.3,0.4]
-
 if __name__ == "__main__":
 
     #training of agent without prohibitive boundary
