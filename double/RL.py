@@ -50,7 +50,7 @@ length=len(theta1_record)
 x=range(length)
 plt.plot(x,theta1_record,label='Lower Angle',color='black')
 plt.plot(x,theta1_velocity_record,label='Lower Angular Velocity',color='blue',alpha=0.5)
-plt.plot(x,theta1_integral_record,label='Integrals',color='magenta',alpha=0.5)
+plt.plot(x,theta1_integral_record,label='Integrals',color='magenta')
 
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 12})
@@ -60,7 +60,7 @@ plt.show()
 
 plt.plot(x,theta2_record,label='Upper Angle',color='black')
 plt.plot(x,theta2_velocity_record,label='Upper Angular Velocity',color='blue',alpha=0.5)
-plt.plot(x,theta2_integral_record,label='Integrals',color='magenta',alpha=0.5)
+plt.plot(x,theta2_integral_record,label='Integrals',color='magenta')
 
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 12})
@@ -69,7 +69,7 @@ plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 12})
 plt.show()
 
 
-plt.plot(x,actions_record,label='actions',color='blue')
+plt.plot(x,actions_record,label='RL actions',color='green',alpha=0.3)
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 12})
 #plt.ylim(-0.1,0.1)

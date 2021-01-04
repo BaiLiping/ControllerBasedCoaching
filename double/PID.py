@@ -14,8 +14,8 @@ from sklearn.pipeline import make_pipeline
 #kd=[-0.5,-0.6]
 #kp=[-5.69332015e-01 ,-3.90236132e-02 ,-5.14855973e-01]
 #kd=[-3.07251717e+00 ,-2.98465176e-03 ,-7.36120966e-01]
-kp=[-0.5,0,-2.9]
-kd=[-0.5,0,-0.6]
+kp=[-0.5,-0.04,-2.9]
+kd=[-0.5,-0.003,-0.6]
 
 
 # polynomial controller
@@ -55,14 +55,44 @@ while not terminal:
     actions_record.append(actions_predict)
 print(episode_reward)
 
+# x=range(len(theta1_record))
+# fig=plt.figure(figsize=(10,7))
+# plt.plot(x,theta1_record,label='Lower Angle',color='black')
+# plt.plot(x,theta1_velocity_record,label='Lower Angular Velocity',color='blue',alpha=0.5)
+# plt.plot(x,theta1_integral_record,label='Integral',color='magenta',alpha=0.5)
+# plt.xlabel('Steps', fontsize='large')
+# plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
+# plt.ylim(-0.5,0.5)
+# #plt.savefig('double_PID.png')
+# plt.show()
+
+# fig=plt.figure(figsize=(10,7))
+# plt.plot(x,theta2_record,label='Upper Angle',color='black')
+# plt.plot(x,theta2_velocity_record,label='Upper Angular Velocity',color='blue',alpha=0.5)
+# plt.plot(x,theta2_integral_record,label='Integral',color='magenta',alpha=0.5)
+# plt.xlabel('Steps', fontsize='large')
+# plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
+# plt.ylim(-0.5,0.5)
+# plt.show()
+
+# fig=plt.figure(figsize=(10,7))
+# plt.plot(x,actions_record,label='actions',color='green')
+# plt.xlabel('Steps', fontsize='large')
+# plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
+# plt.ylim(-.25,.25)
+# plt.show()
+
+
+
 x=range(len(theta1_record))
 fig=plt.figure(figsize=(10,7))
 plt.plot(x,theta1_record,label='Lower Angle',color='black')
 plt.plot(x,theta1_velocity_record,label='Lower Angular Velocity',color='blue',alpha=0.5)
 plt.plot(x,theta1_integral_record,label='Integral',color='magenta',alpha=0.5)
+plt.plot(x,actions_record,label='PID actions',color='green')
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
-#plt.ylim(-0.5,0.5)
+plt.ylim(-0.5,0.5)
 #plt.savefig('double_PID.png')
 plt.show()
 
@@ -70,18 +100,11 @@ fig=plt.figure(figsize=(10,7))
 plt.plot(x,theta2_record,label='Upper Angle',color='black')
 plt.plot(x,theta2_velocity_record,label='Upper Angular Velocity',color='blue',alpha=0.5)
 plt.plot(x,theta2_integral_record,label='Integral',color='magenta',alpha=0.5)
+plt.plot(x,actions_record,label='PID actions',color='green')
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
-#plt.ylim(-0.5,0.5)
+plt.ylim(-0.5,0.5)
 plt.show()
-
-fig=plt.figure(figsize=(10,7))
-plt.plot(x,actions_record,label='actions',color='green')
-plt.xlabel('Steps', fontsize='large')
-plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 16})
-#plt.ylim(-0.5,0.5)
-plt.show()
-
 
 
 
