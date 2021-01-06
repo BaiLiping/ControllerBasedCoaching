@@ -14,6 +14,7 @@ for i in tqdm(range(tuning_episode)):
 	states = environment.reset()
 	terminal=False
 	while not terminal:
+		environment.render()
 		angle=states[1]
 		angular_velocity=states[3]
 		print('angle: %s velocity: %s' %(angle,angular_velocity))

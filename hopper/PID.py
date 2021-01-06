@@ -6,8 +6,15 @@ import pickle
 from tqdm import tqdm
 import gym
 
+# thigh_actuator_kp=[-2,-2,-0.5,-1]
+# thigh_actuator_kd=[-1.7725,1, 0.2,-0.4]
+# leg_actuator_kp=[-0.4,-0.5,-0.1,-0.2]
+# leg_actuator_kd=[-1,0.2,-1,-0.1]
+# foot_actuator_kp=[-2, 1, 0.5, -1]
+# foot_actuator_kd=[-0.4,-0.1,-0.1,-0.5]
+
 thigh_actuator_kp=[-2,-2,-0.5,-1]
-thigh_actuator_kd=[-1.7725,1, 0.2,-0.4]
+thigh_actuator_kd=[-2,1, 0.2,-0.4]
 leg_actuator_kp=[-0.4,-0.5,-0.1,-0.2]
 leg_actuator_kd=[-1,0.2,-1,-0.1]
 foot_actuator_kp=[-2, 1, 0.5, -1]
@@ -25,6 +32,7 @@ actions_record=[]
 
 x_record=[]
 while not terminal:
+	environment.render()
 
 	rooty=states[1]
 	velocity_rooty=states[7]

@@ -23,13 +23,17 @@ for k in range(1):
     states = environment.reset()
     terminal=False
     integrals=0
+    step_count=0
     while not terminal:
-        environment.render()
+        step_count+=1
+        #environment.render()
         integrals+=states[1]
         temp=[states[1],integrals,states[3]]
         theta_states.append(temp)
         actions, internals = RL.act(states=states, internals=internals, independent=True, deterministic=True)
         #states, terminal, reward = environment.execute(actions=actions)
+        if step_count%100==0:
+            actions=-1
         states,reward,terminal,info=environment.step(actions)
         actions_record.append(actions)
 
@@ -41,10 +45,11 @@ length=len(theta)
 x=range(len(theta))
 plt.plot(x,theta,label='Angle',color='black')
 plt.plot(x,theta_velocity,label='Angular Velocity',color='blue',alpha=0.5)
+plt.plot(x,actions_record,label='RL Actions',color='green',alpha=.3)
 plt.xlabel('Steps', fontsize='large')
 plt.legend(loc='upper right',ncol=1, borderaxespad=0,prop={'size': 12})
 plt.ylim(-0.1,0.1)
-plt.savefig('RL.png')
-
+#plt.savefig('RL.png')
+plt.show()
 RL.close()
 environment.close()

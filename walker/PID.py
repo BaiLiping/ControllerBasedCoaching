@@ -6,12 +6,10 @@ import pickle
 from tqdm import tqdm
 import gym
 
-
 test_episodes=1
 
 record=[]
 environment = gym.make('Walker2d-v3')
-
 
 # thigh_actuator_kp=[-1,-1.5,3,0.013,-0.5,3,-0.5]
 # thigh_actuator_kd=[-0.02,-0.2,-0.2,0.1,0.2,-0.1,0.2]
@@ -157,14 +155,14 @@ left_foot_actuator_kp= [-1.95860697 ,-0.14842815]
 # (1.25-rootz) rooty
 
 
-# thigh_actuator_kp=[7,-1]
-# leg_actuator_kp= [ 5 ,-1.2]
-# foot_actuator_kp= [4.5 ,-1]
-# left_thigh_actuator_kp= [ 1.7 ,-1.1]
-# left_leg_actuator_kp=[5, -1.4]
-# left_foot_actuator_kp=[ -1.48, -1.4]
-# #(1.25-rootz) rooty average:  573 best so far
-
+thigh_actuator_kp=[7,-1]
+leg_actuator_kp= [ 5 ,-1.2]
+foot_actuator_kp= [4.5 ,-1]
+left_thigh_actuator_kp= [ 1.7 ,-1.1]
+left_leg_actuator_kp=[5, -1.4]
+left_foot_actuator_kp=[ -1.48, -1.4]
+#(1.25-rootz) rooty average:  573 best so far
+'''
 thigh_actuator_kp=[-0.45]
 thigh_actuator_kd=[-0.247]
 leg_actuator_kp=[-0.7]
@@ -178,7 +176,7 @@ left_leg_actuator_kd=[-0.25]
 left_foot_actuator_kp=[-1.07]
 left_foot_actuator_kd=[-0.15]
 #thigh=[-0.45,-0.247]
-
+'''
 
 # thigh_actuator_kp=[-0.67461129 , 0.28697838]
 # leg_actuator_kp=  [ 0.37299437, -0.38241145]
@@ -208,6 +206,7 @@ for i in range(test_episodes):
 	states = environment.reset()
 	terminal=False
 	while not terminal:
+		environment.render()
 
 		rootz=states[0]
 		velocity_rootz=states[9]
@@ -248,13 +247,13 @@ for i in range(test_episodes):
 		# left_foot_actions = left_foot_actuator_kp[0]*rooty+left_foot_actuator_kd[0]*velocity_rooty+left_foot_actuator_kp[1]*thigh_angle+left_foot_actuator_kd[1]*thigh_angular_velocity
 		# actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]
 
-		thigh_actions = thigh_actuator_kp[0]*rooty+thigh_actuator_kd[0]*velocity_rooty
-		leg_actions = leg_actuator_kp[0]*rooty+leg_actuator_kd[0]*velocity_rooty
-		foot_actions = foot_actuator_kp[0]*rooty+foot_actuator_kd[0]*velocity_rooty
-		left_thigh_actions = left_thigh_actuator_kp[0]*rooty+left_thigh_actuator_kd[0]*velocity_rooty
-		left_leg_actions = left_leg_actuator_kp[0]*rooty+left_leg_actuator_kd[0]*velocity_rooty
-		left_foot_actions = left_foot_actuator_kp[0]*rooty+left_foot_actuator_kd[0]*velocity_rooty
-		actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
+		# thigh_actions = thigh_actuator_kp[0]*rooty+thigh_actuator_kd[0]*velocity_rooty
+		# leg_actions = leg_actuator_kp[0]*rooty+leg_actuator_kd[0]*velocity_rooty
+		# foot_actions = foot_actuator_kp[0]*rooty+foot_actuator_kd[0]*velocity_rooty
+		# left_thigh_actions = left_thigh_actuator_kp[0]*rooty+left_thigh_actuator_kd[0]*velocity_rooty
+		# left_leg_actions = left_leg_actuator_kp[0]*rooty+left_leg_actuator_kd[0]*velocity_rooty
+		# left_foot_actions = left_foot_actuator_kp[0]*rooty+left_foot_actuator_kd[0]*velocity_rooty
+		# actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
 		
 
 		# thigh_actions = thigh_actuator_kd[0]*velocity_rooty
@@ -274,13 +273,13 @@ for i in range(test_episodes):
 		# actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
 
 
-		# thigh_actions = thigh_actuator_kp[0]*(1.25-rootz)+thigh_actuator_kp[1]*rooty
-		# leg_actions = leg_actuator_kp[0]*(1.25-rootz)+leg_actuator_kp[1]*rooty
-		# foot_actions = foot_actuator_kp[0]*(1.25-rootz)+foot_actuator_kp[1]*rooty
-		# left_thigh_actions = left_thigh_actuator_kp[0]*(1.25-rootz)+left_thigh_actuator_kp[1]*rooty
-		# left_leg_actions = left_leg_actuator_kp[0]*(1.25-rootz)+left_leg_actuator_kp[1]*rooty
-		# left_foot_actions = left_foot_actuator_kp[0]*(1.25-rootz)+left_foot_actuator_kp[1]*rooty
-		# actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
+		thigh_actions = thigh_actuator_kp[0]*(1.25-rootz)+thigh_actuator_kp[1]*rooty
+		leg_actions = leg_actuator_kp[0]*(1.25-rootz)+leg_actuator_kp[1]*rooty
+		foot_actions = foot_actuator_kp[0]*(1.25-rootz)+foot_actuator_kp[1]*rooty
+		left_thigh_actions = left_thigh_actuator_kp[0]*(1.25-rootz)+left_thigh_actuator_kp[1]*rooty
+		left_leg_actions = left_leg_actuator_kp[0]*(1.25-rootz)+left_leg_actuator_kp[1]*rooty
+		left_foot_actions = left_foot_actuator_kp[0]*(1.25-rootz)+left_foot_actuator_kp[1]*rooty
+		actions=[thigh_actions,leg_actions,foot_actions,left_thigh_actions,left_leg_actions,left_foot_actions]                                   
 
 		# thigh_actions = thigh_actuator_kp[0]*(1.25-rootz)+thigh_actuator_kd[0]*velocity_rootz+thigh_actuator_kp[1]*rooty+thigh_actuator_kd[1]*velocity_rooty
 		# leg_actions = leg_actuator_kp[0]*(1.25-rootz)+leg_actuator_kd[0]*velocity_rootz+leg_actuator_kp[1]*rooty+leg_actuator_kd[1]*velocity_rooty

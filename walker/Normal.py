@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 #setparameters
-num_steps=1000 #update exploration rate over n steps
+num_steps=15000 #update exploration rate over n steps
 initial_value=0.9 #initial exploartion rate
 decay_rate=0.5 #exploration rate decay rate
 set_type='exponential' #set the type of decay linear, exponential
@@ -15,7 +15,7 @@ exploration=dict(type=set_type, unit='timesteps',
                  num_steps=num_steps,initial_value=initial_value,
                  decay_rate=decay_rate)
 
-episode_number=10000
+episode_number=1000000
 evaluation_episode_number=50
 average_over=100
 
@@ -77,8 +77,6 @@ if __name__ == "__main__":
         while not terminal:
             actions = agent_without.act(states=states)
             states, terminal, reward = environment.execute(actions=actions)
-            if abs(states[1])>0.2:
-                terminal = 1
             episode_reward+=reward
             agent_without.observe(terminal=terminal, reward=reward)
         reward_record_without.append(episode_reward)
@@ -99,5 +97,6 @@ if __name__ == "__main__":
             episode_reward += reward
         evaluation_record_without.append(episode_reward)
     pickle.dump(evaluation_record_without, open( "walker_evaluation_without_record.p", "wb"))
-    agent_without.save(directory='Walker_RL', format='numpy')
+    agent_without.save(directory='Walker_RL_100k', format='numpy')
     agent_without.close()
+    environment.close()

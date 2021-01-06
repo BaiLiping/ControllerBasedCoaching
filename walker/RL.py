@@ -10,7 +10,8 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
 
-environment = Environment.create(environment='gym', level='Walker2d-v3')
+#environment = Environment.create(environment='gym', level='Walker2d-v3')
+environment=gym.make('Walker2d-v3')
 #polynomial regression"
 RL= Agent.load(directory='Walker_RL', format='numpy')
 internals = RL.initial_internals()
@@ -20,9 +21,11 @@ states = environment.reset()
 terminal=False
 episode_reward=0
 while not terminal:
+    environment.render()
     theta_states.append([states[1],states[10]])
     actions, internals = RL.act(states=states, internals=internals, independent=True, deterministic=True)
-    states, terminal, reward = environment.execute(actions=actions)
+    #states, terminal, reward = environment.execute(actions=actions)
+    states,reward,terminal,info=environment.step(actions)
     actions_record.append(actions)
     episode_reward+=reward
 

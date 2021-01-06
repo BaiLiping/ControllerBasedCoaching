@@ -10,7 +10,8 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
 
-environment = Environment.create(environment='gym', level='Hopper-v3')
+#environment = Environment.create(environment='gym', level='Hopper-v3')
+environment = gym.make('Hopper-v3')
 #polynomial regression"
 RL= Agent.load(directory='Hopper_RL', format='numpy')
 internals = RL.initial_internals()
@@ -22,10 +23,12 @@ for k in range(1):
     states = environment.reset()
     terminal=False
     while not terminal:
+    	environment.render()
     	theta_states.append([states[1],states[7]])
     	x_record.append(states[5])
     	actions, internals = RL.act(states=states, internals=internals, independent=True, deterministic=True)
-    	states, terminal, reward = environment.execute(actions=actions)
+    	#states, terminal, reward = environment.execute(actions=actions)
+    	states,reward,terminal,info=environment.step(actions)
     	actions_record.append(actions)
 y_record=[row[0] for row in theta_states]
 y_velocity=[row[1] for row in theta_states]

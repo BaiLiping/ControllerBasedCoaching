@@ -20,6 +20,7 @@ kd=[-0.5,-0.003,-0.6]
 
 # polynomial controller
 environment_control = gym.make('InvertedDoublePendulum-v2')
+
 episode_reward=0
 theta1_integral=0
 theta2_integral=0
@@ -38,6 +39,7 @@ theta2_integral_record=[]
 actions_record=[]
 
 while not terminal:
+    environment_control.render()
     sintheta1=states[1]
     theta1_record.append(sintheta1)
     theta1_integral+=sintheta1

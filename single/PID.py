@@ -7,6 +7,7 @@ from tqdm import tqdm
 import gym
 
 
+
 kp=30
 ki=0.001
 kd=2.26
@@ -16,12 +17,14 @@ angle_record=[]
 velocity_record=[]
 actions_record=[]
 environment = gym.make('InvertedPendulum-v2')
+
 print('testing PID controller')
 episode_reward=0
 states = environment.reset()
 terminal=False
 integral=0
 while not terminal:
+    environment.render()
     integral+=states[1]
     actions = kp*states[1]+ki*integral+kd*states[3]
     states, reward, terminal,info = environment.step(actions)
